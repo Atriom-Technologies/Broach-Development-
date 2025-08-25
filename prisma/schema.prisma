@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum field that allows for a single selection and not multiple as in []
+enum UserType {
+  requester_reporter
+  support_organization
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum Sector {
+  mental_health
+  legal_assistance
+  gender_based_advocacy
+  human_rights
+  child_rights
+  others
+}
+
+enum OrgSize {
+  size_5_10
+  size_10_20
+  size_20_50
+  size_50_PLUS
+}
+
+// User field for used for user authentication common for both client(requester/reporter) and support organization
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  userType  UserType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requesterReporterProfile RequesterReporterProfile?
+  supportOrgProfile        SupportOrgProfile?
+  refreshSessions          RefreshSession[] //  one-to-many relation
+
+  @@index([userType]) // Optional, if frequently filtered
+}
+
+model RequesterReporterProfile {
+  id             String   @id @default(uuid())
+  fullName       String
+  gender         Gender
+  dateOfBirth    DateTime
+  occupation     String
+  profilePicture String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SupportOrgProfile {
+  id               String   @id @default(uuid())
+  fullName         String
+  sector           Sector
+  customSector     String? // Accepts data when the other field is field not available in the sector list
+  dateEstablished  DateTime
+  organizationSize OrgSize
+  alternatePhone   String?
+  organizationLogo String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RefreshSession {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId]) // Needed to fetch sessions per user quickly
+  @@index([expiresAt]) //  Optional, for session expiry sweeps
+}
