@@ -37,6 +37,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global prefix
+  app.setGlobalPrefix('api');
+
   // Swagger Config
   const config = new DocumentBuilder()
     .setTitle('Broach API')
