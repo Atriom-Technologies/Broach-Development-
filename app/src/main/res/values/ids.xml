@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tlPhoneNumber" type="id">@+id/tlPhoneNumber</item>
+    <item name="etPhoneNumber" type="id">@+id/etPhoneNumber</item>
+    <item name="tlPassword" type="id">@+id/tlPassword</item>
+    <item name="etPassword" type="id">@+id/etPassword</item>
+    <item name="tlConfirmPassword" type="id">@+id/tlConfirmPassword</item>
+    <item name="c_r_e_a_t_text" type="id">@+id/c_r_eat_text</item>
+</resources>
