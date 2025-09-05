@@ -22,6 +22,7 @@ enum UserType {
 enum Gender {
   male
   female
+  mixed
 }
 
 enum Sector {
@@ -30,6 +31,13 @@ enum Sector {
   gender_based_advocacy
   human_rights
   child_rights
+  crisis_support
+  social_welfare_and_Livelihood_support_services
+  health_medical_services
+  community_advocacy
+  disability_and_inclusion
+  technology_and_digital_rights
+  health_and_rehabilitation_services
   others
 }
 
@@ -37,11 +45,99 @@ enum OrgSize {
   size_5_10
   size_10_20
   size_20_50
-  size_50_PLUS
+  size_50_plus
+}
+
+enum WhoIsReporting {
+  self
+  parent_guardian
+  spouse
+  witness
+  others
+}
+
+enum TypeOfCase {
+  sexual_assault
+  physical_assault
+  psychological_emotional_abuse
+  female_genital_mutilation
+  child_abuse
+  forced_marriage
+  online_cyberspace
+  property_dispute
+  others
+}
+
+enum Location {
+  victim_home
+  perpetrator_home
+  neutral_location
+  school
+  workspace
+  online
+  others
+}
+
+enum CaseStatus {
+  PENDING
+  IN_DISC
+  RESOLVED
+  CLOSED
+}
+
+enum AgeRange {
+  less_than_18
+  from_18_to_25
+  from_26_to_35
+  from_36_to_45
+  above_45
+}
+
+enum VulnerabilityStatus {
+  not_applicable
+  mentally_disabled
+  physically_disabled
+  HIV_positive
+  internally_displaced
+  widow_widower
+  minor_orphan
+}
+
+enum EmploymentStatus {
+  employed
+  unemployed
+  self_employed
+}
+
+enum NoOfAssailants {
+  less_than_2
+  from_2_5
+  from_5_10
+  over_10
+}
+
+enum TypeOfService {
+  mental_health_counsel_therapy
+  social_welfare
+  rehabilitation_services
+  health_medical_services
+  housing_shelter_support
+  legal_assistance
+  domestic_violence_support
+  educational_support
+  disability_support_services
+  refugee_displaced_people_support
+}
+
+enum MaritalStatus {
+  single
+  married
+  separated
+  divorced
 }
 
 // User field for used for user authentication common for both client(requester/reporter) and support organization
-
+// ===================USRER MODEL===================
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -55,9 +151,10 @@ model User {
   supportOrgProfile        SupportOrgProfile?
   refreshSessions          RefreshSession[] //  one-to-many relation
 
-  @@index([userType]) // Optional, if frequently filtered
+  @@index([userType])
 }
 
+// ======================PROFILE MODELS=======================
 model RequesterReporterProfile {
   id             String   @id @default(uuid())
   fullName       String
@@ -66,26 +163,46 @@ model RequesterReporterProfile {
   occupation     String
   profilePicture String?
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String        @unique
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Case       CaseDetails[] // A profile can report multiple cases
+  BioDetails BioDetails[] // A profile can request multiple services
+
+  @@index([fullName])
 }
 
 model SupportOrgProfile {
   id               String   @id @default(uuid())
   fullName         String
-  sector           Sector
   customSector     String? // Accepts data when the other field is field not available in the sector list
   dateEstablished  DateTime
   organizationSize OrgSize
   alternatePhone   String?
   organizationLogo String?
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String             @unique
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  case       CaseDetails[] // An organization can handle multiple cases
+  BioDetails BioDetails[] // An organization can provide multiple services
+  sectors    SupportOrgSector[] // An organization can have multiple sectors of operation
 
   @@index([userId])
+  @@index([fullName])
+  @@index([customSector])
 }
 
+// ======================SUPPORT ORGANIZATION SECTOR MODEL=======================
+model SupportOrgSector {
+  id     String            @id @default(uuid())
+  sector Sector
+  orgId  String
+  org    SupportOrgProfile @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([sector, orgId]) // Ensure a sector is not duplicated for the same organization
+  @@index([sector])
+}
+
+// ======================REFRESH SESSION MODEL=======================
 model RefreshSession {
   id           String   @id @default(uuid())
   userId       String
@@ -98,5 +215,105 @@ model RefreshSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId]) // Needed to fetch sessions per user quickly
-  @@index([expiresAt]) //  Optional, for session expiry sweeps
+  @@index([expiresAt]) //  Optional for session expiry sweeps
+}
+
+// ==============================CASE REPORT MODEL=======================
+
+// =================Case Details =======================
+model CaseDetails {
+  id                         String                    @id @default(uuid())
+  requesterReporterProfileId String?
+  requesterReporterProfile   RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
+
+  whoIsReporting WhoIsReporting
+  typeOfCase     TypeOfCase
+  location       Location
+  description    String         @db.VarChar(200)
+  infoConfirmed  Boolean
+  caseStatus     CaseStatus     @default(PENDING)
+
+  victimDetails    VictimDetails?
+  assailantDetails AssailantDetails?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  supportOrgProfile   SupportOrgProfile? @relation(fields: [supportOrgProfileId], references: [id])
+  supportOrgProfileId String?
+
+  @@index([requesterReporterProfileId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([caseStatus])
+  @@index([typeOfCase])
+}
+
+// ==========================VICTIM DETAIL=======================
+model VictimDetails {
+  id     String      @id @default(uuid())
+  caseId String      @unique
+  case   CaseDetails @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  ageRange            AgeRange
+  employmentStatus    EmploymentStatus
+  gender              Gender
+  vulnerabilityStatus VulnerabilityStatus
+
+  @@index([id])
+}
+
+// ==========================ASSAILANT DETAIL=======================
+model AssailantDetails {
+  id     String      @id @default(uuid())
+  caseId String      @unique
+  case   CaseDetails @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  noOfAssailants NoOfAssailants
+  gender         Gender
+  ageRange       AgeRange
+
+  @@index([id])
+}
+
+// ==========================SERVICE REQUEST MODEL===========================
+
+// ==========================BIO DETAILS=======================
+model BioDetails {
+  id                         String                    @id @default(uuid())
+  requesterReporterProfileId String?
+  requesterReporterProfile   RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
+
+  whoNeedsThisService WhoIsReporting
+  ageRange            AgeRange?
+  phone               String?
+  email               String?
+  infoConfirmed       Boolean
+  caseStatus          CaseStatus     @default(PENDING)
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  SupportOrgProfile   SupportOrgProfile? @relation(fields: [supportOrgProfileId], references: [id])
+  supportOrgProfileId String?
+  serviceDetails      ServiceDetails?
+
+  @@index([requesterReporterProfileId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([caseStatus])
+}
+
+// ================SERVICE DETAILS=======================
+model ServiceDetails {
+  id    String     @id @default(uuid())
+  bioId String     @unique
+  bio   BioDetails @relation(fields: [bioId], references: [id], onDelete: Cascade)
+
+  typeOfService       TypeOfService
+  maritalStatus       MaritalStatus
+  workStatus          EmploymentStatus
+  vulnerabilityStatus VulnerabilityStatus
+  description         String              @db.VarChar(200)
+
+  @@index([id])
+  @@index([typeOfService])
 }

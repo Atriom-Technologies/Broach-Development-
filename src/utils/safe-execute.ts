@@ -5,11 +5,8 @@ import { AppLogger } from 'src/logger/logger.service';
 // Utility service to safely execute functions and handle errors
 @Injectable()
 export class SafeExecutor {
-  // Injecting the custom logger service
   constructor(private readonly logger: AppLogger) {}
 
-  // Generic method to execute a function safely
-  // It logs errors and throws an InternalServerErrorException if the function fails
   async run<T>(
     // Function to execute
     fn: () => Promise<T>,

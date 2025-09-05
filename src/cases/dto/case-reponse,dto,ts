@@ -1,0 +1,52 @@
+import {
+  WhoIsReporting,
+  TypeOfCase,
+  Location,
+  CaseStatus,
+  AgeRange,
+  Gender,
+  VulnerabilityStatus,
+  EmploymentStatus,
+  NoOfAssailants,
+} from '@prisma/client';
+
+
+// Case Response
+export class CaseResponseDto {
+  id: string;
+  whoIsReporting: WhoIsReporting;
+  typeOfCase: TypeOfCase;
+  location: Location;
+  description: string;
+  infoConfirmed: boolean;
+  caseStatus: CaseStatus;
+
+  // nested
+  victimDetails?: VictimDetailsResponseDto;
+  assailantDetails?: AssailantDetailsResponseDto;
+
+  createdAt: Date;
+  updatedAt: Date;
+
+  // reporter info (optional — hide sensitive fields)
+  reporterName?: string;
+}
+
+// Victim Response
+export class VictimDetailsResponseDto {
+  id: string;
+  ageRange: AgeRange;
+  employmentStatus: EmploymentStatus;
+  gender: Gender;
+  vulnerabilityStatus: VulnerabilityStatus;
+}
+
+// Assailant Response
+export class AssailantDetailsResponseDto {
+  id: string;
+  noOfAssailants: NoOfAssailants;
+  gender: Gender;
+  ageRange: AgeRange;
+}
+
+

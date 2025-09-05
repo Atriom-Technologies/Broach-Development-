@@ -38,7 +38,7 @@ export class AuthService {
     // Check if password matches
     if (password !== confirmPassword) {
       this.logger.warn(
-        'Registration failed: Password mismatch for email: ${dto.email}',
+        `Registration failed: Password mismatch for email: ${dto.email}`,
       );
       throw new BadRequestException('Passwords do not match');
     }
@@ -50,7 +50,7 @@ export class AuthService {
 
     if (existingUser) {
       this.logger.warn(
-        'Registration failed: User already exists with email: ${email} or phone: ${phone}',
+        `Registration failed: User already exists with email: ${email} or phone: ${phone}`,
       );
       throw new ConflictException('User with this credentials already exist');
     }
@@ -103,7 +103,7 @@ export class AuthService {
     userType: UserType,
   ) {
     // Get email, phone, password, confirmpassword except profile data
-    const { email, phone, password, confirmPassword, ...profileData } = dto;
+    const { email, phone, password, confirmPassword, sectors, ...profileData } = dto;
 
     // Check if password matches
     if (password !== confirmPassword) {
@@ -121,7 +121,7 @@ export class AuthService {
 
     if (existingUser) {
       this.logger.warn(
-        'Registration failed: User already exists with email: ${email} or phone: ${phone}',
+        `Registration failed: User already exists with email: ${email} or phone: ${phone}`,
       );
       throw new ConflictException('User with this credentials already exist');
     }
@@ -131,6 +131,10 @@ export class AuthService {
       () => argon2.hash(password),
       'Failed to hash password during registration',
     );
+
+    if (!profileData.dateEstablished) {
+  throw new BadRequestException('Date Established is required');
+}
 
     // Create user and support organization profile
     const user = await this.safeExecutor.run(
@@ -142,15 +146,21 @@ export class AuthService {
             password: hashedPassword,
             userType,
             supportOrgProfile: {
+              // create profile data with its nested sector relation
               create: {
                 ...profileData,
                 dateEstablished: new Date(profileData.dateEstablished),
+
+                sectors: {
+                  create: sectors.map((sector) => ({
+                    sector
+                  }))
+                }
               },
             },
           },
           include: {
-            supportOrgProfile: true,
-          },
+            supportOrgProfile: true,          },
         }),
       'Failed to create User and Support Organization Profile during registration',
     );
@@ -238,16 +248,16 @@ export class AuthService {
       accessToken,
       refreshToken: refreshTokenRaw,
       sessionId: session.id,
-      user: {
-        id: user.id,
-        email: user.email,
-        phone: user.phone,
-        userType: user.userType,
-        profile:
-          user.userType === 'requester_reporter'
-            ? user.requesterReporterProfile
-            : user.supportOrgProfile,
-      },
+      // user: {
+      //   id: user.id,
+      //   email: user.email,
+      //   phone: user.phone,
+      //   userType: user.userType,
+      //   profile:
+      //     user.userType === 'requester_reporter'
+      //       ? user.requesterReporterProfile
+      //       : user.supportOrgProfile,
+      // },
     };
   }
 

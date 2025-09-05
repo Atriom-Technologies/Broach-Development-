@@ -10,6 +10,8 @@ import { LoggerModule } from './logger/logger.module';
 import { UtilsModule } from './utils/utils.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { CasesModule } from './cases/cases.module';
+import { ServiceRequestModule } from './service-request/service-request.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -38,6 +40,8 @@ import * as Joi from 'joi';
     ProfilesModule,
     LoggerModule,
     UtilsModule,
+    CasesModule,
+    ServiceRequestModule,
   ],
   controllers: [AppController],
   providers: [

@@ -8,9 +8,6 @@ export class SupportOrgProfileDto {
   @ApiProperty()
   fullName: string;
 
-  @ApiProperty({ enum: Sector })
-  sector: Sector;
-
   @ApiProperty({ required: false })
   customSector?: string;
 
@@ -25,4 +22,7 @@ export class SupportOrgProfileDto {
 
   @ApiProperty({ required: false })
   organizationLogo?: string;
+
+  @ApiProperty({ enum: Sector })
+  sectors: Sector[];
 }
