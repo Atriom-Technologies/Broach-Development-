@@ -31,16 +31,9 @@ export class RequesterProfileDto {
   occupation: string;
 
 
-  @ApiProperty({
-    description: 'Profile picture URL of the user',
-    example: 'https://example.com/profile.jpg',
-    required: false,
-  })
-  @IsOptional()
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsString()
-  profilePicture?: string;
+@ApiProperty({ type: 'string', format: 'binary', required: false })
+@IsOptional()
+profilePicture?: any;
+
 
 }

@@ -12,7 +12,7 @@ import { RequestWithUserPayload } from 'src/broach/auth/interfaces/jwt-payload.i
 
 
 
-@ApiTags('Profile')
+@ApiTags('Requester Profile')
 @ApiBearerAuth()
 @Controller('requester-profile')
 export class RequesterProfileController {

@@ -25,10 +25,10 @@ export class OrganizationProfileDto {
   @IsString()
   alternatePhone?: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
   organizationLogo?: any;
+
 
   @ApiProperty({ required: false })
   @IsOptional()
