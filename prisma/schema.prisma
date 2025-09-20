@@ -25,22 +25,6 @@ enum Gender {
   mixed
 }
 
-enum Sector {
-  mental_health
-  legal_assistance
-  gender_based_advocacy
-  human_rights
-  child_rights
-  crisis_support
-  social_welfare_and_Livelihood_support_services
-  health_medical_services
-  community_advocacy
-  disability_and_inclusion
-  technology_and_digital_rights
-  health_and_rehabilitation_services
-  others
-}
-
 enum OrgSize {
   size_5_10
   size_10_20
@@ -56,18 +40,6 @@ enum WhoIsReporting {
   others
 }
 
-enum TypeOfCase {
-  sexual_assault
-  physical_assault
-  psychological_emotional_abuse
-  female_genital_mutilation
-  child_abuse
-  forced_marriage
-  online_cyberspace
-  property_dispute
-  others
-}
-
 enum Location {
   victim_home
   perpetrator_home
@@ -79,10 +51,16 @@ enum Location {
 }
 
 enum CaseStatus {
-  PENDING
-  IN_DISC
-  RESOLVED
-  CLOSED
+  pending
+  in_discussion
+  resolved
+  closed
+}
+
+enum AssignmentStatus {
+  pending // available for any org to take
+  accepted // locked by an org
+  rejected // org declined → can be reopened
 }
 
 enum AgeRange {
@@ -91,16 +69,6 @@ enum AgeRange {
   from_26_to_35
   from_36_to_45
   above_45
-}
-
-enum VulnerabilityStatus {
-  not_applicable
-  mentally_disabled
-  physically_disabled
-  HIV_positive
-  internally_displaced
-  widow_widower
-  minor_orphan
 }
 
 enum EmploymentStatus {
@@ -114,19 +82,6 @@ enum NoOfAssailants {
   from_2_5
   from_5_10
   over_10
-}
-
-enum TypeOfService {
-  mental_health_counsel_therapy
-  social_welfare
-  rehabilitation_services
-  health_medical_services
-  housing_shelter_support
-  legal_assistance
-  domestic_violence_support
-  educational_support
-  disability_support_services
-  refugee_displaced_people_support
 }
 
 enum MaritalStatus {
@@ -149,57 +104,73 @@ model User {
 
   requesterReporterProfile RequesterReporterProfile?
   supportOrgProfile        SupportOrgProfile?
-  refreshSessions          RefreshSession[] //  one-to-many relation
+  passwordReset            PasswordReset?
+
+  //Relation to child model/tables
+  refreshSessions RefreshSession[] //  one-to-many relation
 
   @@index([userType])
+  @@index([email])
 }
 
 // ======================PROFILE MODELS=======================
 model RequesterReporterProfile {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   fullName       String
-  gender         Gender
-  dateOfBirth    DateTime
-  occupation     String
+  gender         Gender?
+  dateOfBirth    DateTime?
+  occupation     String?
   profilePicture String?
 
-  userId     String        @unique
-  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Case       CaseDetails[] // A profile can report multiple cases
-  BioDetails BioDetails[] // A profile can request multiple services
+  userId String @unique
+
+  // Relationt to child model/table
+  cases           CaseDetails[] // A profile can report multiple cases
+  serviceRequests ServiceRequests[] // A profile can request multiple services
+
+  // Relation to parent model/table
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([fullName])
 }
 
 model SupportOrgProfile {
-  id               String   @id @default(uuid())
-  fullName         String
+  id               String    @id @default(uuid())
+  organizationName String
   customSector     String? // Accepts data when the other field is field not available in the sector list
-  dateEstablished  DateTime
-  organizationSize OrgSize
+  dateEstablished  DateTime?
+  organizationSize OrgSize?
+  address          String?
   alternatePhone   String?
   organizationLogo String?
 
-  userId     String             @unique
-  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  case       CaseDetails[] // An organization can handle multiple cases
-  BioDetails BioDetails[] // An organization can provide multiple services
-  sectors    SupportOrgSector[] // An organization can have multiple sectors of operation
+  userId String @unique
+
+  // Child modles
+  sectors            SupportOrgSector[] // An organization can have multiple sectors of operation
+  CaseAssignments    CaseAssignment[]
+  ServiceAssignments ServiceAssignment[]
+  // Relation to parent table/model
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([fullName])
+  @@index([organizationName])
   @@index([customSector])
 }
 
 // ======================SUPPORT ORGANIZATION SECTOR MODEL=======================
 model SupportOrgSector {
-  id     String            @id @default(uuid())
-  sector Sector
-  orgId  String
-  org    SupportOrgProfile @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id             String @id @default(uuid())
+  sectorId       String
+  organizationId String
 
-  @@unique([sector, orgId]) // Ensure a sector is not duplicated for the same organization
-  @@index([sector])
+  // Relation to models associated with sectors
+  organization SupportOrgProfile @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sector       Sector            @relation(fields: [sectorId], references: [id])
+
+  @@unique([sectorId, organizationId]) // Ensure a sector is not duplicated for the same organization
+  @@index([sectorId])
+  @@index([organizationId])
 }
 
 // ======================REFRESH SESSION MODEL=======================
@@ -214,106 +185,204 @@ model RefreshSession {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId]) // Needed to fetch sessions per user quickly
-  @@index([expiresAt]) //  Optional for session expiry sweeps
+  @@index([userId, expiresAt]) // Needed to fetch sessions per user quickly
+  @@index([expiresAt])
 }
 
-// ==============================CASE REPORT MODEL=======================
-
-// =================Case Details =======================
+// ====================================================CASE REPORT MODELS==========================================================
 model CaseDetails {
-  id                         String                    @id @default(uuid())
+  id                         String  @id @default(uuid())
   requesterReporterProfileId String?
-  requesterReporterProfile   RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
+  caseTypeId                 String
 
   whoIsReporting WhoIsReporting
-  typeOfCase     TypeOfCase
-  location       Location
+  location       Location?
   description    String         @db.VarChar(200)
-  infoConfirmed  Boolean
-  caseStatus     CaseStatus     @default(PENDING)
+  infoConfirmed  Boolean        @default(false)
+  caseStatus     CaseStatus     @default(pending)
 
+  // Relations with child models/tables
   victimDetails    VictimDetails?
   assailantDetails AssailantDetails?
+  caseAssignments  CaseAssignment[]
 
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  supportOrgProfile   SupportOrgProfile? @relation(fields: [supportOrgProfileId], references: [id])
-  supportOrgProfileId String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  deletedAt                DateTime?
+  // Relations to parent models/tables
+  requesterReporterProfile RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
+  caseType                 CaseType                  @relation(fields: [caseTypeId], references: [id])
 
   @@index([requesterReporterProfileId])
+  @@index([caseTypeId])
+  @@index([caseStatus])
   @@index([createdAt])
   @@index([updatedAt])
-  @@index([caseStatus])
-  @@index([typeOfCase])
+  @@index([deletedAt])
 }
 
-// ==========================VICTIM DETAIL=======================
 model VictimDetails {
-  id     String      @id @default(uuid())
-  caseId String      @unique
-  case   CaseDetails @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  id                    String  @id @default(uuid())
+  caseId                String  @unique
+  vulnerabilityStatusId String?
 
-  ageRange            AgeRange
-  employmentStatus    EmploymentStatus
-  gender              Gender
-  vulnerabilityStatus VulnerabilityStatus
+  ageRange         AgeRange
+  employmentStatus EmploymentStatus
+  gender           Gender
 
-  @@index([id])
+  // Relation to parent models
+  cases               CaseDetails          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  vulnerabilityStatus VulnerabilityStatus? @relation(fields: [vulnerabilityStatusId], references: [id])
+
+  @@index([vulnerabilityStatusId])
+  @@index([caseId])
 }
 
-// ==========================ASSAILANT DETAIL=======================
 model AssailantDetails {
-  id     String      @id @default(uuid())
-  caseId String      @unique
-  case   CaseDetails @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  caseId String @unique
 
   noOfAssailants NoOfAssailants
   gender         Gender
   ageRange       AgeRange
 
-  @@index([id])
+  // Relation to parent models
+  cases CaseDetails @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
 }
 
-// ==========================SERVICE REQUEST MODEL===========================
-
-// ==========================BIO DETAILS=======================
-model BioDetails {
-  id                         String                    @id @default(uuid())
+// ==========================SERVICE REQUEST MODELS===========================
+model ServiceRequests {
+  id                         String  @id @default(uuid())
   requesterReporterProfileId String?
-  requesterReporterProfile   RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
 
   whoNeedsThisService WhoIsReporting
   ageRange            AgeRange?
   phone               String?
   email               String?
   infoConfirmed       Boolean
-  caseStatus          CaseStatus     @default(PENDING)
+  caseStatus          CaseStatus     @default(pending)
 
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  SupportOrgProfile   SupportOrgProfile? @relation(fields: [supportOrgProfileId], references: [id])
-  supportOrgProfileId String?
-  serviceDetails      ServiceDetails?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relation to child models/tables
+  serviceDetails     ServiceDetails?
+  serviceAssignments ServiceAssignment[]
+
+  // Relation to parent models/tables
+  requesterReporterProfile RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
 
   @@index([requesterReporterProfileId])
+  @@index([caseStatus])
   @@index([createdAt])
   @@index([updatedAt])
-  @@index([caseStatus])
+  @@index([deletedAt])
 }
 
-// ================SERVICE DETAILS=======================
 model ServiceDetails {
-  id    String     @id @default(uuid())
-  bioId String     @unique
-  bio   BioDetails @relation(fields: [bioId], references: [id], onDelete: Cascade)
+  id                    String  @id @default(uuid())
+  serviceRequestId      String  @unique
+  serviceTypeId         String
+  vulnerabilityStatusId String?
 
-  typeOfService       TypeOfService
-  maritalStatus       MaritalStatus
-  workStatus          EmploymentStatus
-  vulnerabilityStatus VulnerabilityStatus
-  description         String              @db.VarChar(200)
+  maritalStatus MaritalStatus
+  workStatus    EmploymentStatus
 
-  @@index([id])
-  @@index([typeOfService])
+  description String @db.VarChar(200)
+
+  // Relation to parent model/tables
+  serviceRequests     ServiceRequests      @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  serviceType         ServiceType          @relation(fields: [serviceTypeId], references: [id])
+  vulnerabilityStatus VulnerabilityStatus? @relation(fields: [vulnerabilityStatusId], references: [id])
+
+  @@index([serviceTypeId])
+}
+
+// Enums stored as models/tables for scalabiity
+model Sector {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relation to other models requiring sectors (support organization sector)
+  organizations SupportOrgSector[]
+}
+
+model CaseType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relations to modele/tables requiring casetype models
+  cases CaseDetails[]
+}
+
+model VulnerabilityStatus {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relation to models/table requiring vulnerability status
+  serviceDetails ServiceDetails[]
+  victimsDetails VictimDetails[]
+}
+
+model ServiceType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relation to models/table requiring service type
+  serviceDetails ServiceDetails[]
+}
+
+// ================== CASE ASSIGNMENT ==================
+model CaseAssignment {
+  id             String           @id @default(uuid())
+  caseId         String
+  organizationId String?
+  status         AssignmentStatus @default(pending)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  case         CaseDetails        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, organizationId]) // prevent duplicates
+  @@index([caseId, status])
+  @@index([organizationId])
+  @@index([status])
+}
+
+// ================== SERVICE ASSIGNMENT ==================
+model ServiceAssignment {
+  id             String           @id @default(uuid())
+  serviceId      String
+  organizationId String?
+  status         AssignmentStatus @default(pending)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  service      ServiceRequests    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, organizationId]) // prevent duplicates
+  @@index([serviceId, status])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique // Harshed token is to be stored
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([createdAt])
 }

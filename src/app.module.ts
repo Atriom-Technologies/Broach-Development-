@@ -3,15 +3,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { ProfilesModule } from './profiles/profiles.module';
+import { AuthModule } from './broach/auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { UtilsModule } from './utils/utils.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { CasesModule } from './cases/cases.module';
-import { ServiceRequestModule } from './service-request/service-request.module';
+import { CasesModule } from './broach/cases/cases.module';
+import { ServiceRequestModule } from './broach/service-request/service-request.module';
+import { RequesterProfileModule } from './broach/profiles/requester-profile/requester-profile.module';
+import { OrganizationProfileModule } from './broach/profiles/organization-profile/organization-profile.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -36,14 +36,14 @@ import * as Joi from 'joi';
 
     PrismaModule,
     AuthModule,
-    UsersModule,
-    ProfilesModule,
     LoggerModule,
     UtilsModule,
     CasesModule,
     ServiceRequestModule,
+    RequesterProfileModule,
+    OrganizationProfileModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController,],
   providers: [
     AppService,
     {
