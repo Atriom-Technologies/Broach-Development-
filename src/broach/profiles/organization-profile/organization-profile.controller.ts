@@ -18,7 +18,8 @@ import { OrganizationProfileDto } from './dto/organization-profile.dto';
 export class OrganizationProfileController {
     constructor(private readonly organizationProfileService: OrganizationProfileService){}
     
-    
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserType.support_organization)
     @Patch('update')
     @UseInterceptors(FileInterceptor('organizationLogo', 
         {
@@ -28,11 +29,8 @@ export class OrganizationProfileController {
         return cb(new BadRequestException('Only JPG/PNG images are allowed'), false);
       }
       cb(null, true);
-    },
-  }
+    }}
     ))
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserType.support_organization)
     @ApiConsumes('multipart/form-data')
     async updateRequesterProfile(
         @Body() dto: OrganizationProfileDto,

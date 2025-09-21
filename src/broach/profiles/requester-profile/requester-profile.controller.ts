@@ -18,8 +18,8 @@ import { RequestWithUserPayload } from 'src/broach/auth/interfaces/jwt-payload.i
 export class RequesterProfileController {
     constructor(private readonly requesterProfileService: RequesterProfileService){}
     
-    
-    @Patch('update')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserType.requester_reporter)
     @UseInterceptors(FileInterceptor('profilePicture', 
         {
     limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
@@ -31,9 +31,8 @@ export class RequesterProfileController {
     },
   }
     ))
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserType.requester_reporter)
     @ApiConsumes('multipart/form-data')
+    @Patch('update')
     async updateRequesterProfile(
         @Body() dto: RequesterProfileDto,
         @UploadedFile() file: Express.Multer.File,
