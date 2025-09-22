@@ -12,11 +12,6 @@ import {
 } from 'class-validator';
 import { Match } from 'src/utils/validators/match.decorator';
 
-enum Gender {
-  male = 'male',
-  female = 'female',
-}
-
 export class RegisterReqRepDto {
   @ApiProperty({
     description: 'Full name of the user',
