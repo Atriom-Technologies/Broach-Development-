@@ -11,7 +11,7 @@ async function bootstrap() {
 
   // Cors
   app.enableCors({
-    origin: '*', // Whitelists specific domains
+    origin: ['https://broach-development-profile.onrender.com'], // Whitelists specific domains
     credentials: true,
   });
 
