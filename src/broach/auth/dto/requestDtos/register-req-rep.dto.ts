@@ -55,7 +55,6 @@ export class RegisterReqRepDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
-  @MinLength()
   password: string;
 
 
