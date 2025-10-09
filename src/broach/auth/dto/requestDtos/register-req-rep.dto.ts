@@ -43,12 +43,6 @@ export class RegisterReqRepDto {
     description: 'Phone number of the user',
     example: '+2348012345678',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @Matches(/^\+?[1-9]\d{7,14}$/, {
-  message: 'phone must be in format +2348012345678',
-})
   @IsPhoneNumber()
   phone: string;
 
@@ -61,7 +55,7 @@ export class RegisterReqRepDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
-  @MinLength(6)
+  @MinLength()
   password: string;
 
 
