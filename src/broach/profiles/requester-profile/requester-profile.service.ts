@@ -15,7 +15,6 @@ import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 export class RequesterProfileService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly dto: RequesterProfileDto,
     private readonly safeExecutor: SafeExecutor,
     private readonly logger: AppLogger,
     @Inject('CLOUDINARY')
