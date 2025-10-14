@@ -9,7 +9,9 @@ describe('RequesterProfileController', () => {
       controllers: [RequesterProfileController],
     }).compile();
 
-    controller = module.get<RequesterProfileController>(RequesterProfileController);
+    controller = module.get<RequesterProfileController>(
+      RequesterProfileController,
+    );
   });
 
   it('should be defined', () => {

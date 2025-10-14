@@ -20,8 +20,10 @@ import { UserAgent } from 'src/common/decorators/user-agent.decorator';
 import { RefreshDto } from './dto/requestDtos/refresh.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RequestWithUserPayload } from './interfaces/jwt-payload.interface';
-import { ForgotPassword, ResetPassword } from './dto/requestDtos/forgot-password.dto';
-
+import {
+  ForgotPassword,
+  ResetPassword,
+} from './dto/requestDtos/forgot-password.dto';
 
 @ApiTags('Auth')
 @ApiBearerAuth()
@@ -33,7 +35,10 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  @ApiResponse({ status: 409, description: 'Conflict. Email or phone already in use.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict. Email or phone already in use.',
+  })
   async registerRequestReporter(@Body() dto: RegisterReqRepDto) {
     const result = await this.authService.registerRequesterReporter(
       dto,
@@ -72,8 +77,6 @@ export class AuthController {
     return this.authService.login(dto, ipAddress, userAgent);
   }
 
-
-  
   @UseGuards(JwtAuthGuard)
   @Delete('logout/:sessionId')
   logout(
@@ -95,15 +98,13 @@ export class AuthController {
     return this.authService.logoutAllSessions(req.user.id);
   }
 
-
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPassword) {
-    return this.authService.requestPasswordReset(dto)
+    return this.authService.requestPasswordReset(dto);
   }
 
   @Post('reset-password')
   async resetPassword(@Body() dto: ResetPassword) {
-    return this.authService.resetPassword(dto)
+    return this.authService.resetPassword(dto);
   }
-
 }

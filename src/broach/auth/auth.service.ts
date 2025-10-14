@@ -4,7 +4,6 @@ import {
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
-  Body,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterReqRepDto } from './dto/requestDtos/register-req-rep.dto';
@@ -12,7 +11,6 @@ import * as argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
 import { UserType } from '@prisma/client';
 import { RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
-import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/requestDtos/login.dto';
 import { RefreshDto } from './dto/requestDtos/refresh.dto';
 import { TokenService } from './services/token.service';
@@ -20,11 +18,11 @@ import { SessionService } from './services/session.service';
 import { AppLogger } from 'src/logger/logger.service';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { ForbiddenException } from '@nestjs/common';
-import { ForgotPassword, ResetPassword } from './dto/requestDtos/forgot-password.dto';
+import {
+  ForgotPassword,
+  ResetPassword,
+} from './dto/requestDtos/forgot-password.dto';
 import { randomBytes } from 'crypto';
-import { date } from 'joi';
-import { getEnvOrThrow } from 'src/utils/get-env';
-import { title } from 'process';
 
 @Injectable()
 export class AuthService {
@@ -39,7 +37,7 @@ export class AuthService {
 
   async registerRequesterReporter(dto: RegisterReqRepDto, userType: UserType) {
     // Get email, phone, password, confirmpassword except profile data
-    const {fullName, email, phone, password, confirmPassword } = dto;
+    const { fullName, email, phone, password, confirmPassword } = dto;
 
     // Check if password matches
     if (password !== confirmPassword) {
@@ -68,7 +66,7 @@ export class AuthService {
       'Failed to hash password during registration',
     );
 
-    // Create user profile in user table with a temporary requester profile until the personal details are filled 
+    // Create user profile in user table with a temporary requester profile until the personal details are filled
     const user = await this.safeExecutor.run(
       () =>
         this.prisma.user.create({
@@ -78,7 +76,7 @@ export class AuthService {
             password: hashedPassword,
             userType,
             requesterReporterProfile: {
-              create: { fullName }, // A skeleton profile is created for the requester/reporter profile table with full name 
+              create: { fullName }, // A skeleton profile is created for the requester/reporter profile table with full name
             },
           },
           include: {
@@ -95,12 +93,12 @@ export class AuthService {
         id: user.id,
         email: user.email,
         phone: user.phone,
-        userType: user.userType
+        userType: user.userType,
       },
     };
   }
 
-   async registerSupportOrganization(
+  async registerSupportOrganization(
     dto: RegisterSupportOrgDto,
     userType: UserType,
   ) {
@@ -134,7 +132,7 @@ export class AuthService {
       'Failed to hash password during registration',
     );
 
-/*     if (!profileData.dateEstablished) {
+    /*     if (!profileData.dateEstablished) {
   throw new BadRequestException('Date Established is required');
 } */
 
@@ -150,11 +148,11 @@ export class AuthService {
             supportOrgProfile: {
               // create profile data with its nested sector relation
               create: {
-                organizationName // prepopulating the support org table with its full name skeletally which will be updated with other datas later
-       /*          ...profileData,
+                organizationName, // prepopulating the support org table with its full name skeletally which will be updated with other datas later
+                /*          ...profileData,
                 dateEstablished: new Date(profileData.dateEstablished), */
 
-/*                 sectors: {
+                /*                 sectors: {
                   create: sectors.map((sector) => ({
                     sector
                   }))
@@ -163,7 +161,8 @@ export class AuthService {
             },
           },
           include: {
-            supportOrgProfile: true,          },
+            supportOrgProfile: true,
+          },
         }),
       'Failed to create User and Support Organization Profile during registration',
     );
@@ -252,8 +251,8 @@ export class AuthService {
       sessionId: session.id,
       user: {
         id: user.id,
-       // email: user.email,
-       // phone: user.phone,
+        // email: user.email,
+        // phone: user.phone,
         userType: user.userType,
         username:
           user.userType === 'requester_reporter'
@@ -262,7 +261,6 @@ export class AuthService {
       },
     };
   }
-
 
   async logout(
     sessionId: string,
@@ -291,7 +289,7 @@ export class AuthService {
     );
     return { message: 'Logout successful' };
   }
-  
+
   async refresh(dto: RefreshDto) {
     // Extract refresh token and session ID from dto
     const { refreshToken, sessionId } = dto;
@@ -348,7 +346,7 @@ export class AuthService {
     };
 
     const accessToken = await this.tokenService.signAccessToken(payload);
-    const newRefreshToken = this.tokenService.signRefreshToken(); 
+    const newRefreshToken = this.tokenService.signRefreshToken();
 
     // Rotate token in DB
     await this.safeExecutor.run(
@@ -362,7 +360,7 @@ export class AuthService {
       sessionId,
     };
   }
-  
+
   async logoutAllSessions(userId: string): Promise<{ message: string }> {
     const result = await this.safeExecutor.run(
       () => this.prisma.refreshSession.deleteMany({ where: { userId } }),
@@ -372,125 +370,132 @@ export class AuthService {
     this.logger.log(`User ${userId} logged out from ${result.count} sessions`);
     return { message: `You've logged out from all devices successfully` };
   }
-   
+
   // Forgot password flow
-  async requestPasswordReset ( dto: ForgotPassword) {
+  async requestPasswordReset(dto: ForgotPassword) {
     // Fetch email from dto
-    const { email } =  dto;
+    const { email } = dto;
     // Fetch user by email from user table
-    const user = await this.safeExecutor.run( ()=> 
-      this.prisma.user.findUnique({ where: { email }}),
-    `Password Reset requested for non existing email: ${email}`
-    )
+    const user = await this.safeExecutor.run(
+      () => this.prisma.user.findUnique({ where: { email } }),
+      `Password Reset requested for non existing email: ${email}`,
+    );
 
     // Throw error to client if no user is found
-    if(!user) throw new NotFoundException('User does not exist');
+    if (!user) throw new NotFoundException('User does not exist');
 
-      // If found, generate a reset token
-  const rawToken = randomBytes(32).toString('hex');
-  const hashedToken = await this.safeExecutor.run(
-    () => argon2.hash(rawToken),
-    `Failed to hash token for user ${user.email}`
-  )
+    // If found, generate a reset token
+    const rawToken = randomBytes(32).toString('hex');
+    const hashedToken = await this.safeExecutor.run(
+      () => argon2.hash(rawToken),
+      `Failed to hash token for user ${user.email}`,
+    );
 
-  // get expiry time from env file
-  const expiry = this.configService.getOrThrow<number>('PASSWORD_RESET_EXPIRY')
+    // get expiry time from env file
+    const expiry = this.configService.getOrThrow<number>(
+      'PASSWORD_RESET_EXPIRY',
+    );
 
-  // set it to expire in 10mins
-  const expiresAt = new Date(Date.now() + expiry * (60 * 1000) )
+    // set it to expire in 10mins
+    const expiresAt = new Date(Date.now() + expiry * (60 * 1000));
 
-  // Save hashed token to databse
-  const resetToken = await this.safeExecutor.run(
-    () => this.prisma.passwordReset.upsert({
-      where: { userId: user.id },
-      update: { 
-        token: hashedToken,
-        expiresAt,
-  },
-  create :{
-        userId: user.id,
-        token: hashedToken,
-        expiresAt
-      
-    }
-  }),
-    `Failed to store reset password token for user ${user.email}`
-  )
+    // Save hashed token to databse
+    const resetToken = await this.safeExecutor.run(
+      () =>
+        this.prisma.passwordReset.upsert({
+          where: { userId: user.id },
+          update: {
+            token: hashedToken,
+            expiresAt,
+          },
+          create: {
+            userId: user.id,
+            token: hashedToken,
+            expiresAt,
+          },
+        }),
+      `Failed to store reset password token for user ${user.email}`,
+    );
 
-  return {
-    success: true,
-    message: {
-      title: `Reset link has been sent to ${user.email}`,
-      Body: `Click on this link ${rawToken}:${resetToken.userId} to reset your password` // userId attache to the request parameter
-    }
-  }
-
+    return {
+      success: true,
+      message: {
+        title: `Reset link has been sent to ${user.email}`,
+        Body: `Click on this link ${rawToken}:${resetToken.userId} to reset your password`, // userId attache to the request parameter
+      },
+    };
   }
 
   // Reset password flow
   async resetPassword(dto: ResetPassword) {
-
-
     // Retrieve userId and token from client/dto
-    const [ token, userId ] = dto.token.split(':')
-
-
+    const [token, userId] = dto.token.split(':');
 
     // Extract hashed token from database using the expiresAt field and userID. it auto fetches the whole record for that table
     const userToken = await this.safeExecutor.run(
-      () => this.prisma.passwordReset.findFirst({
-        where: { 
-          userId,
-          expiresAt: { gt : new Date()}, // Fetches records that are not expired
-          
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }),
-      `Failed to fetch password reset records`
+      () =>
+        this.prisma.passwordReset.findFirst({
+          where: {
+            userId,
+            expiresAt: { gt: new Date() }, // Fetches records that are not expired
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
+      `Failed to fetch password reset records`,
     );
 
-    if(!userToken) throw new UnauthorizedException('Your session has expired');
-
+    if (!userToken) throw new UnauthorizedException('Your session has expired');
 
     // Validate the token with the hashed token in the database for the user
     const isValid = await this.safeExecutor.run(
-      () => argon2.verify(userToken.token, token),'Token verification failed');
+      () => argon2.verify(userToken.token, token),
+      'Token verification failed',
+    );
 
-      // if token is not valid, throws an exception else, next flow
-      if(!isValid) throw new UnauthorizedException('Token invalid')
+    // if token is not valid, throws an exception else, next flow
+    if (!isValid) throw new UnauthorizedException('Token invalid');
 
     // Hash the password
     const hashedPassword = await this.safeExecutor.run(
-      () => argon2.hash(dto.newPassword),'Failed to hash password');
+      () => argon2.hash(dto.newPassword),
+      'Failed to hash password',
+    );
 
-      // update user password
-       await this.safeExecutor.run(
-        () => this.prisma.user.update({
+    // update user password
+    await this.safeExecutor.run(
+      () =>
+        this.prisma.user.update({
           where: { id: userToken.userId },
-          data: {password: hashedPassword}
-        }),'Failed to update password');
+          data: { password: hashedPassword },
+        }),
+      'Failed to update password',
+    );
 
-        // Delete used reset record
-         await this.safeExecutor.run(
-          () => this.prisma.passwordReset.delete({
-            where: {userId}
-          }),'Failed to delete record');
+    // Delete used reset record
+    await this.safeExecutor.run(
+      () =>
+        this.prisma.passwordReset.delete({
+          where: { userId },
+        }),
+      'Failed to delete record',
+    );
 
-          //Clear all refresh sessions
-          await this.safeExecutor.run(
-            () => this.prisma.refreshSession.deleteMany({
-              where: { userId }
-            }),'Failed to clear sessions'
-          )
+    //Clear all refresh sessions
+    await this.safeExecutor.run(
+      () =>
+        this.prisma.refreshSession.deleteMany({
+          where: { userId },
+        }),
+      'Failed to clear sessions',
+    );
 
-          return {
-            success: true,
-            message: {
-              title: 'Password Reset Successful'
-            }
-          }
-
+    return {
+      success: true,
+      message: {
+        title: 'Password Reset Successful',
+      },
+    };
   }
-} 
+}

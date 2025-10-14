@@ -12,6 +12,7 @@ import { CasesModule } from './broach/cases/cases.module';
 import { ServiceRequestModule } from './broach/service-request/service-request.module';
 import { RequesterProfileModule } from './broach/profiles/requester-profile/requester-profile.module';
 import { OrganizationProfileModule } from './broach/profiles/organization-profile/organization-profile.module';
+import { ResourceModule } from './resource/resource.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -23,7 +24,7 @@ import * as Joi from 'joi';
       validationSchema: Joi.object({
         BCRYPT_SALT_ROUNDS: Joi.number().required(),
         JWT_SECRET: Joi.string().required(),
-        JWT_EXPIRATION: Joi.string().default('15min').optional(),
+        JWT_EXPIRATION: Joi.string().default('60min').optional(),
         REFRESH_TOKEN_TTL: Joi.number().default(604800000), // default if fallback needed
       }),
     }),
@@ -42,8 +43,9 @@ import * as Joi from 'joi';
     ServiceRequestModule,
     RequesterProfileModule,
     OrganizationProfileModule,
+    ResourceModule,
   ],
-  controllers: [AppController,],
+  controllers: [AppController],
   providers: [
     AppService,
     {

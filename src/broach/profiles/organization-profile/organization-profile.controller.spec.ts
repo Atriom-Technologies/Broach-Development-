@@ -9,7 +9,9 @@ describe('OrganizationProfileController', () => {
       controllers: [OrganizationProfileController],
     }).compile();
 
-    controller = module.get<OrganizationProfileController>(OrganizationProfileController);
+    controller = module.get<OrganizationProfileController>(
+      OrganizationProfileController,
+    );
   });
 
   it('should be defined', () => {

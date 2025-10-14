@@ -1,11 +1,8 @@
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength  } from 'class-validator';
-import { string } from 'joi';
-import { Match } from 'src/utils/validators/match.decorator';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class ForgotPassword {
-
   @ApiProperty({
     description: 'Email address of the user',
     example: 'example@gmail.com',
@@ -18,15 +15,14 @@ export class ForgotPassword {
 }
 
 export class ResetPassword {
-
   @ApiProperty({
     description: 'Token for reset password',
   })
-  @Transform(({ value }: {value: unknown}) => typeof value == 'string'? value.trim(): value)
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value == 'string' ? value.trim() : value,
+  )
   @IsString()
   token: string;
-
-
 
   @ApiProperty({
     description: 'New Password for the user account',
@@ -37,6 +33,4 @@ export class ResetPassword {
   )
   @MinLength(6)
   newPassword: string;
-
-
 }

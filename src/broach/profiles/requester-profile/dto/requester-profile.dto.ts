@@ -4,8 +4,6 @@ import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class RequesterProfileDto {
-
-
   @ApiProperty({
     description: 'Gender of the user',
     example: 'male',
@@ -30,10 +28,7 @@ export class RequesterProfileDto {
   @IsString()
   occupation: string;
 
-
-@ApiProperty({ type: 'string', format: 'binary', required: false })
-@IsOptional()
-profilePicture?: any;
-
-
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
+  @IsOptional()
+  profilePicture?: string;
 }

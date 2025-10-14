@@ -159,6 +159,8 @@ model SupportOrgProfile {
 }
 
 // ======================SUPPORT ORGANIZATION SECTOR MODEL=======================
+
+// A junction table/model that stores lists of sectors an organization operated in during registration cause an organization can operate in multiple sectors
 model SupportOrgSector {
   id             String @id @default(uuid())
   sectorId       String
@@ -302,6 +304,8 @@ model ServiceDetails {
 }
 
 // Enums stored as models/tables for scalabiity
+
+// This sector model is a dictionary model/table that stores all the sectors available for support organizations to choose from
 model Sector {
   id   String @id @default(uuid())
   name String @unique

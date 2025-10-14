@@ -1,14 +1,11 @@
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsDateString,
   IsEmail,
-  IsEnum,
-  IsOptional,
   IsPhoneNumber,
   IsString,
   MinLength,
-  Matches
+  Matches,
 } from 'class-validator';
 import { Match } from 'src/utils/validators/match.decorator';
 
@@ -23,9 +20,6 @@ export class RegisterReqRepDto {
   @IsString()
   fullName: string;
 
-
-
-
   @ApiProperty({
     description: 'Email address of the user',
     example: 'abcdew@example.com',
@@ -36,9 +30,6 @@ export class RegisterReqRepDto {
   @IsEmail()
   email: string;
 
-
-
-
   @ApiProperty({
     description: 'Phone number of the user',
     example: '+2348012345678',
@@ -47,12 +38,10 @@ export class RegisterReqRepDto {
     typeof value === 'string' ? value.trim() : value,
   )
   @Matches(/^\+?[1-9]\d{7,14}$/, {
-  message: 'phone must be in format +2348012345678',
-})
+    message: 'phone must be in format +2348012345678',
+  })
   @IsPhoneNumber()
   phone: string;
-
-
 
   @ApiProperty({
     description: 'Password for the user account',
@@ -63,8 +52,6 @@ export class RegisterReqRepDto {
   )
   @MinLength(6)
   password: string;
-
-
 
   @ApiProperty({
     description: 'Confirmation of the password',

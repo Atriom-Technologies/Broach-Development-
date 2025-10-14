@@ -13,7 +13,7 @@ export class SafeExecutor {
     errorMessage: string,
   ): Promise<T> {
     // Try to execute the function and catch any errors
-    // If an error occurs, log it and throw an InternalServerErrorException
+    // If an error occurs, log it
     try {
       return await fn();
     } catch (error: unknown) {

@@ -7,8 +7,8 @@ import { OrganizationProfileController } from './organization-profile.controller
 import { OrganizationProfileService } from './organization-profile.service';
 
 @Module({
-      imports: [ PrismaModule, LoggerModule],
-      providers: [OrganizationProfileService, CloudinaryProvider, SafeExecutor],
-      controllers: [OrganizationProfileController]
+  imports: [PrismaModule, LoggerModule],
+  providers: [OrganizationProfileService, CloudinaryProvider, SafeExecutor],
+  controllers: [OrganizationProfileController],
 })
 export class OrganizationProfileModule {}

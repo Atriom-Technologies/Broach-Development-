@@ -4,10 +4,11 @@ import { ServiceRequestService } from './service-request.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { LoggerModule } from 'src/logger/logger.module';
 import { SafeExecutor } from 'src/utils/safe-execute';
+import { ServiceRepository } from './service-repository/service.repository';
 
 @Module({
   imports: [PrismaModule, LoggerModule],
   controllers: [ServiceRequestController],
-  providers: [ServiceRequestService, SafeExecutor]
+  providers: [ServiceRequestService, SafeExecutor, ServiceRepository],
 })
 export class ServiceRequestModule {}

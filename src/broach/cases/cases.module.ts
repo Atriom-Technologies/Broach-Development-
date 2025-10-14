@@ -4,10 +4,11 @@ import { CasesService } from './cases.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { LoggerModule } from 'src/logger/logger.module';
+import { CaseRepository } from './repository/case.repository';
 
 @Module({
   imports: [PrismaModule, LoggerModule],
   controllers: [CasesController],
-  providers: [CasesService, SafeExecutor]
+  providers: [CasesService, SafeExecutor, CaseRepository],
 })
 export class CasesModule {}

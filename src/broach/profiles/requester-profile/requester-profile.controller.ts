@@ -1,4 +1,13 @@
-import { Body, Controller, Req, UseGuards, Patch, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Req,
+  UseGuards,
+  Patch,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { RequesterProfileService } from './requester-profile.service';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/broach/auth/guards/jwt-auth.guard';
@@ -9,39 +18,42 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RequestWithUserPayload } from 'src/broach/auth/interfaces/jwt-payload.interface';
 
-
-
-
 @ApiTags('Requester Profile')
 @ApiBearerAuth()
 @Controller('requester-profile')
 export class RequesterProfileController {
-    constructor(private readonly requesterProfileService: RequesterProfileService){}
-    
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(UserType.requester_reporter)
-    @UseInterceptors(FileInterceptor('profilePicture', 
-        {
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-        return cb(new BadRequestException('Only JPG/PNG images are allowed'), false);
-      }
-      cb(null, true);
-    },
-  }
-    ))
-    @ApiConsumes('multipart/form-data')
-    @Patch('update')
-    async updateRequesterProfile(
-        @Body() dto: RequesterProfileDto,
-        @UploadedFile() file: Express.Multer.File,
-        @Req() req: RequestWithUserPayload
-    ) {
+  constructor(
+    private readonly requesterProfileService: RequesterProfileService,
+  ) {}
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.requester_reporter)
+  @UseInterceptors(
+    FileInterceptor('profilePicture', {
+      limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+          return cb(
+            new BadRequestException('Only JPG/PNG images are allowed'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @Patch('update')
+  async updateRequesterProfile(
+    @Body() dto: RequesterProfileDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUserPayload,
+  ) {
     const userId = req.user.id; // from auth guard
-    return this.requesterProfileService.updateRequesterProfile(dto, userId, file);
-    }
+    return this.requesterProfileService.updateRequesterProfile(
+      dto,
+      userId,
+      file,
+    );
+  }
 }
-
-
-
