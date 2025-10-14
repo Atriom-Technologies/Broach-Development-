@@ -87,15 +87,11 @@ export class AuthService {
     );
 
     return {
-      success: true,
-      message: 'Registration Successful',
-      user: {
         id: user.id,
         email: user.email,
         phone: user.phone,
         userType: user.userType,
-      },
-    };
+    }
   }
 
   async registerSupportOrganization(
@@ -167,14 +163,10 @@ export class AuthService {
       'Failed to create User and Support Organization Profile during registration',
     );
     return {
-      success: true,
-      message: 'Registration Successful',
-      user: {
         id: user.id,
         email: user.email,
         phone: user.phone,
         userType: user.userType,
-      },
     };
   }
 
@@ -245,11 +237,9 @@ export class AuthService {
 
     // Return tokens and user info
     return {
-      message: 'Login successful',
       accessToken,
       refreshToken: refreshTokenRaw,
       sessionId: session.id,
-      user: {
         id: user.id,
         // email: user.email,
         // phone: user.phone,
@@ -258,20 +248,15 @@ export class AuthService {
           user.userType === 'requester_reporter'
             ? user.requesterReporterProfile?.fullName
             : user.supportOrgProfile?.organizationName,
-      },
     };
   }
 
-  async logout(
-    sessionId: string,
-    userId: string,
-  ): Promise<{ message: string }> {
-    // Validate session ID
+  async logout(sessionId: string, userId: string): Promise<void> {
     const session = await this.safeExecutor.run(
       () => this.prisma.refreshSession.findUnique({ where: { id: sessionId } }),
       'Failed to find session during logout',
     );
-    // If session not found, throw error
+
     if (!session || session.userId !== userId) {
       this.logger.warn(
         `Logout failed for userId: ${userId}, sessionId: ${sessionId}`,
@@ -287,8 +272,8 @@ export class AuthService {
     this.logger.log(
       `User ${userId} successfully logged out from session ${sessionId}`,
     );
-    return { message: 'Logout successful' };
   }
+
 
   async refresh(dto: RefreshDto) {
     // Extract refresh token and session ID from dto
@@ -361,15 +346,16 @@ export class AuthService {
     };
   }
 
-  async logoutAllSessions(userId: string): Promise<{ message: string }> {
+  async logoutAllSessions(userId: string): Promise<number> {
     const result = await this.safeExecutor.run(
       () => this.prisma.refreshSession.deleteMany({ where: { userId } }),
       'Failed to logout from all sessions',
     );
 
     this.logger.log(`User ${userId} logged out from ${result.count} sessions`);
-    return { message: `You've logged out from all devices successfully` };
+    return result.count;
   }
+
 
   // Forgot password flow
   async requestPasswordReset(dto: ForgotPassword) {
@@ -417,19 +403,57 @@ export class AuthService {
       `Failed to store reset password token for user ${user.email}`,
     );
 
-    return {
-      success: true,
-      message: {
-        title: `Reset link has been sent to ${user.email}`,
-        Body: `Click on this link ${rawToken}:${resetToken.userId} to reset your password`, // userId attache to the request parameter
-      },
-    };
+      return {
+        email: user.email,
+        rawToken, // will be used internally to send email
+        expiresAt,
+      };
+
   }
 
   // Reset password flow
-  async resetPassword(dto: ResetPassword) {
+  async resetPassword(dto: ResetPassword, userId: string) {
+  const { token, newPassword, confirmPassword } = dto;
+
+  const userToken = await this.prisma.passwordReset.findFirst({
+    where: { userId, expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!userToken) throw new UnauthorizedException('Reset link expired');
+
+  const isValid = await argon2.verify(userToken.token, token);
+  if (!isValid) throw new UnauthorizedException('Invalid token');
+
+  if (newPassword !== confirmPassword) {
+      this.logger.warn(
+        `Password reset failed: new Password mismatch for userId: ${userId}`,
+      );
+      throw new BadRequestException('Passwords do not match');
+  }
+
+  const hashedPassword = await argon2.hash(newPassword);
+
+  await this.prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    await tx.passwordReset.delete({
+      where: { id: userToken.id }, // IMPORTANT FIX
+    });
+
+    await tx.refreshSession.deleteMany({ where: { userId } });
+  });
+}
+
+
+
+
+/*   async resetPassword(dto: ResetPassword) {
     // Retrieve userId and token from client/dto
-    const [token, userId] = dto.token.split(':');
+    const [token, userId, newPassword, confirmPassword] = dto.token.split(':');
 
     // Extract hashed token from database using the expiresAt field and userID. it auto fetches the whole record for that table
     const userToken = await this.safeExecutor.run(
@@ -457,9 +481,15 @@ export class AuthService {
     // if token is not valid, throws an exception else, next flow
     if (!isValid) throw new UnauthorizedException('Token invalid');
 
+    if (newPassword !== confirmPassword) {
+      this.logger.warn(
+        `Password reset failed: new Password mismatch for email: ${userId}`,
+      );
+      throw new BadRequestException('Passwords do not match');
+    }    
     // Hash the password
     const hashedPassword = await this.safeExecutor.run(
-      () => argon2.hash(dto.newPassword),
+      () => argon2.hash(newPassword),
       'Failed to hash password',
     );
 
@@ -491,11 +521,5 @@ export class AuthService {
       'Failed to clear sessions',
     );
 
-    return {
-      success: true,
-      message: {
-        title: 'Password Reset Successful',
-      },
-    };
-  }
+  } */
 }

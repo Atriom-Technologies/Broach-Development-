@@ -45,11 +45,10 @@ export class AuthController {
       UserType.requester_reporter,
     );
 
-    return {
-      status: 'success',
-      message: result.message,
-      data: result.user,
-    };
+      return {
+        "message": "Registration Successful",
+        userId: result.id,  // Match Kotlin exactly
+      };
   }
 
   @Post('register/organization')
@@ -60,11 +59,10 @@ export class AuthController {
       UserType.support_organization,
     );
 
-    return {
-      status: 'success',
-      message: result.message,
-      data: result.user,
-    };
+      return {
+        "message": "Registration Successful",
+        userId: result.id,  // Match Kotlin exactly
+      };
   }
 
   @Post('login')
@@ -74,16 +72,24 @@ export class AuthController {
     @Ip() ipAddress: string, // custom decorator or raw req.ip
     @UserAgent() userAgent: string, // custom decorator or manual extraction
   ) {
-    return this.authService.login(dto, ipAddress, userAgent);
+    const result = await this.authService.login(dto, ipAddress, userAgent);
+    return {
+      message: "Login successful",
+      authTOken: result.accessToken,
+      UserType: result.userType
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('logout/:sessionId')
-  logout(
+  async logout(
     @Param('sessionId') sessionId: string,
     @Req() req: RequestWithUserPayload, // user info from decoded JWT
   ) {
-    return this.authService.logout(sessionId, req.user.id);
+    const result = await this.authService.logout(sessionId, req.user.id);
+    return {
+        "message": "Logout Successful",
+    }
   }
 
   @Post('refresh')
@@ -95,16 +101,28 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Delete('logout-all')
   async logoutAll(@Req() req: RequestWithUserPayload) {
-    return this.authService.logoutAllSessions(req.user.id);
+    const result = await this.authService.logoutAllSessions(req.user.id);
+      return {
+        "message": "logged out of all devices",
+        result
+      };
   }
 
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPassword) {
-    return this.authService.requestPasswordReset(dto);
+    const result = await this.authService.requestPasswordReset(dto);
+    return {
+      message: `Click on this link ${result.rawToken} to reset your password,
+      Bro just carry the token from here i never prepare the email service`,
+    }
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() dto: ResetPassword) {
-    return this.authService.resetPassword(dto);
+  async resetPassword(@Body() dto: ResetPassword, @Req() req: RequestWithUserPayload) {
+    const userId = req.user.id
+    const result = await this.authService.resetPassword(dto, userId);
+    return {
+      message:  'Password Reset Successful'
+    }
   }
 }

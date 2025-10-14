@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsString, minLength, MinLength } from 'class-validator';
 
 export class ForgotPassword {
   @ApiProperty({
@@ -31,6 +31,16 @@ export class ResetPassword {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
-  @MinLength(6)
+  @MinLength(4)
   newPassword: string;
+
+  @ApiProperty({
+    description: 'confirm new password',
+    example: 'newpassword'
+  })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @MinLength(4)
+  confirmPassword: string
 }
