@@ -1,9 +1,9 @@
-package signup
+package com.example.broach.ui.signup
 
-import network.ApiService
-import network.OrganizationSignupRequest
-import network.SignupRequest
-import network.SignupResponse
+import com.example.broach.network.ApiService
+import com.example.broach.network.OrganizationSignupRequest
+import com.example.broach.network.SignupRequest
+import com.example.broach.network.SignupResponse
 import retrofit2.Response
 
 class SignupRepository(private val apiService: ApiService) {
@@ -13,17 +13,16 @@ class SignupRepository(private val apiService: ApiService) {
     ): Result<SignupResponse> {
         return try {
             val response: Response<SignupResponse> = if (isOrganization) {
-                // Call the organization specific API
                 apiService.signupOrganization(
                     OrganizationSignupRequest(
                         organizationName = request.fullName,
                         email = request.email,
-                        phoneNumber = request.phoneNumber,
-                        password = request.password
+                        phone = request.phone,
+                        password = request.password,
+                        confirmPassword = request.confirmPassword
                     )
                 )
             } else {
-                // Call the reporter/requester API
                 apiService.signupReporter(request)
             }
 

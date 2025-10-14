@@ -1,4 +1,4 @@
-package com.example.broach
+package com.example.broach.ui
 
 import android.content.Intent
 import android.os.Bundle

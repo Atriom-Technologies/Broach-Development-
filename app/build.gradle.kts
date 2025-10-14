@@ -55,6 +55,7 @@ dependencies {
     // ViewModel and LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)

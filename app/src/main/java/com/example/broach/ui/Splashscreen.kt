@@ -1,24 +1,26 @@
-package com.example.broach
+package com.example.broach.ui
 
+import android.R
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.example.broach.databinding.ActivitySplashscreen2Binding
+import com.example.broach.databinding.ActivitySplashscreenBinding
+import android.os.Handler // Correct import for android.os.Handler
 
-class Splashscreen2 : AppCompatActivity() {
-    private lateinit var binding: ActivitySplashscreen2Binding
-    private lateinit var handler: android.os.Handler // Use the specific Handler class
+class Splashscreen : AppCompatActivity() {
+
+    private lateinit var binding: ActivitySplashscreenBinding
+    private lateinit var handler: Handler // Use the specific Handler class
     private val autoNavigateRunnable = Runnable {
-        navigateToScreen3()
+        navigateToScreen2()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivitySplashscreen2Binding.inflate(layoutInflater)
+        binding = ActivitySplashscreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         handler = Handler(Looper.getMainLooper())
@@ -28,25 +30,20 @@ class Splashscreen2 : AppCompatActivity() {
 
         // Set click listener for manual navigation
         binding.btnNext.setOnClickListener {
-            navigateToScreen3()
+            navigateToScreen2()
         }
-        binding.btnBack.setOnClickListener {
-            startActivity(Intent(this, Splashscreen::class.java))
-            finish()
-        }
-
     }
 
-    private fun navigateToScreen3() {
+    private fun navigateToScreen2() {
         // Cancel any pending auto-navigation (just in case)
         handler.removeCallbacks(autoNavigateRunnable)
 
         // Navigate to Screen2
-        startActivity(Intent(this, Splashscreen3::class.java))
+        startActivity(Intent(this, Splashscreen2::class.java))
         finish()
         overridePendingTransition(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
+            R.anim.fade_in,
+            R.anim.fade_out
         ) // Optional animation
     }
 
@@ -56,5 +53,3 @@ class Splashscreen2 : AppCompatActivity() {
         super.onDestroy()
     }
 }
-
-

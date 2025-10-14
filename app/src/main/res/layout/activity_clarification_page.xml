@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary_color1"
-    tools:context=".ClarificationActivity">
+    tools:context=".ui.ClarificationActivity">
 
     <View
         android:id="@+id/view"
@@ -143,6 +143,7 @@
                 app:boxBackgroundColor="#F5F5F5"
                 app:boxStrokeWidth="0dp"
                 app:boxStrokeWidthFocused="0dp"
+                android:layout_marginTop="10dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">

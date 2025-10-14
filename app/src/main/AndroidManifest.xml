@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -10,12 +12,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Broach">
+
+        <activity
+            android:name=".ui.home.DetailsActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="false"
             android:label="@string/title_activity_login" />
         <activity
-            android:name=".Splashscreen"
+            android:name=".ui.Splashscreen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,16 +30,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Splashscreen2"
+            android:name=".ui.Splashscreen2"
             android:exported="false" />
         <activity
-            android:name=".Splashscreen3"
+            android:name=".ui.Splashscreen3"
             android:exported="false" />
         <activity
-            android:name=".ClarificationActivity"
+            android:name=".ui.ClarificationActivity"
             android:exported="false" />
         <activity
-            android:name="signup.SignupActivity"
+            android:name=".ui.signup.SignupActivity"
             android:exported="false" />
     </application>
 

@@ -1,12 +1,13 @@
-package com.example.broach
+package com.example.broach.ui
 
+import android.R
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.broach.databinding.ActivityClarificationPageBinding
-import signup.SignupActivity
+import com.example.broach.ui.signup.SignupActivity
 
 class ClarificationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityClarificationPageBinding
@@ -19,7 +20,7 @@ class ClarificationActivity : AppCompatActivity() {
 
         // Set up the dropdown menu with the user categories
         val categories = arrayOf("Reporter/Requester", "Support Organization")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categories)
+        val adapter = ArrayAdapter(this, R.layout.simple_dropdown_item_1line, categories)
         binding.categoryDropdown.setAdapter(adapter)
 
         // Listen for item selection in the dropdown

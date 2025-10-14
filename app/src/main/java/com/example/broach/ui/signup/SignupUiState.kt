@@ -1,4 +1,4 @@
-package signup
+package com.example.broach.ui.signup
 
 sealed class SignupUiState {
     object Idle : SignupUiState()
