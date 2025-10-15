@@ -13,7 +13,9 @@ async function bootstrap() {
     origin: [
       'https://broach-development-profile.onrender.com',
       'http://localhost:3000'
-    ], // Whitelists specific domains
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 

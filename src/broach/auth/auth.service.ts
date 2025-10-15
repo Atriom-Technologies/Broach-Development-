@@ -203,24 +203,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Password');
     }
 
-    // Create access token
-    const payLoad = {
-      sub: user.id,
-      email: user.email,
-      userType: user.userType,
-    };
-    const accessToken = await this.safeExecutor.run(
-      () => this.tokenService.signAccessToken(payLoad),
-      'Failed to sign access token during login',
-    );
-
     // Create refresh token
     const refreshTokenRaw = this.safeExecutor.runSync(
       () => this.tokenService.signRefreshToken(),
       'Failed to sign refresh token during login',
     );
 
-    // Store session
+            // Store session
     const session = await this.safeExecutor.run(
       () =>
         this.sessionService.createSession(
@@ -230,6 +219,18 @@ export class AuthService {
           userAgent,
         ),
       'Failed to create session during login',
+    );
+
+    // Create access token
+    const payLoad = {
+      sub: user.id,
+      email: user.email,
+      userType: user.userType,
+      sessionId: session.id
+    };
+    const accessToken = await this.safeExecutor.run(
+      () => this.tokenService.signAccessToken(payLoad),
+      'Failed to sign access token during login',
     );
 
     // Log successful login
@@ -275,9 +276,9 @@ export class AuthService {
   }
 
 
-  async refresh(dto: RefreshDto) {
+  async refresh(dto: RefreshDto, sessionId: string) {
     // Extract refresh token and session ID from dto
-    const { refreshToken, sessionId } = dto;
+    const { refreshToken } = dto;
 
     // Fetch session ID
     const session = await this.safeExecutor.run(
@@ -328,6 +329,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       userType: user.userType,
+      sessionId: session.id
     };
 
     const accessToken = await this.tokenService.signAccessToken(payload);

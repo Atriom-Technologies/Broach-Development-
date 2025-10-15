@@ -81,12 +81,12 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('logout/:sessionId')
+  @Delete('logout')
   async logout(
-    @Param('sessionId') sessionId: string,
     @Req() req: RequestWithUserPayload, // user info from decoded JWT
   ) {
-    const result = await this.authService.logout(sessionId, req.user.id);
+    const sessionId = req.user.sessionId
+    await this.authService.logout(sessionId, req.user.id);
     return {
         "message": "Logout Successful",
     }
@@ -94,8 +94,9 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(@Body() dto: RefreshDto) {
-    return this.authService.refresh(dto);
+  async refresh(@Body() dto: RefreshDto, @Req() req: RequestWithUserPayload) {
+    const sessionId = req.user.sessionId
+    await this.authService.refresh(dto, sessionId);
   }
 
   @UseGuards(JwtAuthGuard)
