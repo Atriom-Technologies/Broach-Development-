@@ -76,7 +76,8 @@ export class AuthController {
     return {
       message: "Login successful",
       authTOken: result.accessToken,
-      UserType: result.userType
+      UserType: result.userType,
+      isDetailsSubmitted: result.isProfileDetailsSubmitted
     }
   }
 

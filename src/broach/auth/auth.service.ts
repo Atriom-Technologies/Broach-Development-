@@ -18,6 +18,7 @@ import { SessionService } from './services/session.service';
 import { AppLogger } from 'src/logger/logger.service';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { ForbiddenException } from '@nestjs/common';
+import { ProfileStatusProvider } from './helper/profile-status.provider';
 import {
   ForgotPassword,
   ResetPassword,
@@ -33,6 +34,7 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly logger: AppLogger,
     private readonly safeExecutor: SafeExecutor,
+    private readonly profile: ProfileStatusProvider,
   ) {}
 
   async registerRequesterReporter(dto: RegisterReqRepDto, userType: UserType) {
@@ -235,10 +237,15 @@ export class AuthService {
 
     // Log successful login
     this.logger.log(`Login successful for ${user.email} from IP ${ipAddress}`);
+    
+    // THis code checks if user has profile details already submitted.
+    // It will help front end to redirect user to desired entry page.
+    const isProfileDetailsSubmitted = await this.profile.isProfileDetailsSubmitted(user.id, user.userType)
 
     // Return tokens and user info
     return {
       accessToken,
+      isProfileDetailsSubmitted,
       refreshToken: refreshTokenRaw,
       sessionId: session.id,
         id: user.id,
