@@ -21,7 +21,7 @@ import { ProfileStatusProvider } from './helper/profile-status.provider';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '15m', // Default expiration time for access tokens
+          expiresIn: '7d', // Default expiration time for access tokens
         },
       }),
     }),

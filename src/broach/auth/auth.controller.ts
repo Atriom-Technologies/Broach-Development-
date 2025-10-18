@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
   Delete,
+  Get,
 } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -30,6 +31,12 @@ import {
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get('health')
+  healthCheck() {
+    return 'OK';
+  }
+
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
