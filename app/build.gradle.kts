@@ -8,6 +8,7 @@ android {
     
         buildFeatures {
             viewBinding = true
+            compose = true
         }
 
     namespace = "com.example.broach"
@@ -38,9 +39,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
 }
 

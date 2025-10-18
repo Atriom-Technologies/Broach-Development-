@@ -37,7 +37,8 @@ data class OrganizationSignupRequest(
 data class LoginResponse(
     val message: String,
     val authToken: String,
-    val userType: String
+    val userType: String,
+    val isDetailsSubmitted: Boolean
 )
 
 interface ApiService {
