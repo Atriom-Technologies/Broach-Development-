@@ -256,6 +256,9 @@ export class AuthService {
           user.userType === 'requester_reporter'
             ? user.requesterReporterProfile?.fullName
             : user.supportOrgProfile?.organizationName,
+      imageUrl: user.userType === 'requester_reporter'
+        ? user.requesterReporterProfile?.profilePicture
+        : user.supportOrgProfile?.organizationLogo,
     };
   }
 

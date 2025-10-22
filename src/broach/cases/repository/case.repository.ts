@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { AssignmentStatus } from '@prisma/client';
 
 @Injectable()
 export class CaseRepository {
@@ -165,4 +166,68 @@ export class CaseRepository {
       data: { deletedAt: new Date() },
     });
   }
+
+/**
+ * Fetch all sectors that are mapped to a given Case Type.
+ *
+ * Each Case Type (e.g., sexual_assault, child_abuse) can belong to one or more
+ * sectors defined in the CaseTypeSector junction table.
+ *
+ * @param caseTypeId - The unique ID of the case type.
+ * @returns Array of objects containing sectorId values.
+ */
+/* async findSectorsByCaseTypeId(caseTypeId: string) {
+  return this.prisma.caseTypeSector.findMany({
+    where: { caseTypeId },
+    select: { sectorId: true }, // only fetch the sectorId (no need for full object)
+  });
+}
+ */
+/**
+ * Find all support organizations that operate in any of the given sectors.
+ * This query uses the SupportOrgSector junction table, which links organizations
+ * to one or more sectors they operate in (selected during registration).
+ *
+ * @param sectorIds - Array of sector IDs to match against.
+ * @returns Array of objects containing organizationId values.
+ */
+/* async findOrganizationsBySectorIds(sectorIds: string[]) {
+  return this.prisma.supportOrgSector.findMany({
+    where: { sectorId: { in: sectorIds } },
+    select: { organizationId: true }, // only return organizationId to reduce payload
+  });
+} */
+
+/**
+ * Create pending case assignments for multiple organizations.
+ * This method bulk-inserts one CaseAssignment per organization, linking
+ * a case to all eligible organizations that match its sectors.
+ * Uses createMany with skipDuplicates:
+ * - Faster than multiple .create() calls.
+ * - Avoids duplicate (caseId, organizationId) combinations due to the unique constraint.
+ *
+ * @param caseId - The ID of the newly created case.
+ * @param organizationIds - Array of organization IDs to assign the case to.
+ */
+/* async createCaseAssignments(
+  caseId: string, 
+  organizationIds: string[],
+tx: Prisma.TransactionClient = this.prisma ) {
+  // If there are no matching organizations, skip the operation entirely.
+  if (!organizationIds.length) return;
+
+  // Prepare assignment objects
+  const assignments = organizationIds.map((orgId) => ({
+    caseId,
+    organizationId: orgId,
+    status: AssignmentStatus.pending, // initial state
+  }));
+
+  // Bulk insert all assignments; duplicates are ignored gracefully
+  return tx.caseAssignment.createMany({
+    data: assignments,
+    skipDuplicates: true,
+  });
+} */
+
 }

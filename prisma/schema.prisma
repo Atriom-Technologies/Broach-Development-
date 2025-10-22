@@ -148,8 +148,8 @@ model SupportOrgProfile {
 
   // Child modles
   sectors            SupportOrgSector[] // An organization can have multiple sectors of operation
-  CaseAssignments    CaseAssignment[]
-  ServiceAssignments ServiceAssignment[]
+  CaseAssignments    CaseAssignment[] // An organization can be assigned more than one case report
+  ServiceAssignments ServiceAssignment[] // An organization can accept more than one service request
   // Relation to parent table/model
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -160,7 +160,8 @@ model SupportOrgProfile {
 
 // ======================SUPPORT ORGANIZATION SECTOR MODEL=======================
 
-// A junction table/model that stores lists of sectors an organization operated in during registration cause an organization can operate in multiple sectors
+// A junction table/model that stores lists of sectors an organization operates in during registration
+// An organization can operate in multiple sectors
 model SupportOrgSector {
   id             String @id @default(uuid())
   sectorId       String
@@ -311,24 +312,9 @@ model Sector {
   name String @unique
 
   // Relation to other models requiring sectors (support organization sector)
-  organizations SupportOrgSector[]
-}
-
-model CaseType {
-  id   String @id @default(uuid())
-  name String @unique
-
-  // Relations to modele/tables requiring casetype models
-  cases CaseDetails[]
-}
-
-model VulnerabilityStatus {
-  id   String @id @default(uuid())
-  name String @unique
-
-  // Relation to models/table requiring vulnerability status
-  serviceDetails ServiceDetails[]
-  victimsDetails VictimDetails[]
+  organizations     SupportOrgSector[]
+  CaseTypeSector    CaseTypeSector[]
+  ServiceTypeSector ServiceTypeSector[]
 }
 
 model ServiceType {
@@ -336,7 +322,71 @@ model ServiceType {
   name String @unique
 
   // Relation to models/table requiring service type
-  serviceDetails ServiceDetails[]
+  serviceDetails    ServiceDetails[]
+  ServiceTypeSector ServiceTypeSector[]
+}
+
+/**
+ * - Service request can be submitted to more than one organization
+ * - Service request can be associatated with more than one sector
+ * - A join table that connects the sector and typeOfService
+ */
+
+model ServiceTypeSector {
+  id            String      @id @default(uuid())
+  serviceTypeId String
+  sectorId      String
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
+  sector        Sector      @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceTypeId, sectorId])
+  @@index([serviceTypeId])
+  @@index([sectorId])
+}
+
+// ================== SERVICE ASSIGNMENT ==================
+model ServiceAssignment {
+  id             String           @id @default(uuid())
+  serviceId      String
+  organizationId String?
+  status         AssignmentStatus @default(pending)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  service      ServiceRequests    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, organizationId]) // prevent duplicates
+  @@index([serviceId, status])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model CaseType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relations to modele/tables requiring casetype models
+  cases          CaseDetails[]
+  CaseTypeSector CaseTypeSector[]
+}
+
+/**
+ * -- A case report can be submitted to more than one organization
+ * -- A case report can be associated with more than one sector
+ * -- A join table that connects the sector table and type of case
+ */
+model CaseTypeSector {
+  id         String   @id @default(uuid())
+  caseTypeId String
+  sectorId   String
+  caseType   CaseType @relation(fields: [caseTypeId], references: [id], onDelete: Cascade)
+  sector     Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@unique([caseTypeId, sectorId])
+  @@index([caseTypeId])
+  @@index([sectorId])
 }
 
 // ================== CASE ASSIGNMENT ==================
@@ -358,23 +408,13 @@ model CaseAssignment {
   @@index([status])
 }
 
-// ================== SERVICE ASSIGNMENT ==================
-model ServiceAssignment {
-  id             String           @id @default(uuid())
-  serviceId      String
-  organizationId String?
-  status         AssignmentStatus @default(pending)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+model VulnerabilityStatus {
+  id   String @id @default(uuid())
+  name String @unique
 
-  // Relations
-  service      ServiceRequests    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([serviceId, organizationId]) // prevent duplicates
-  @@index([serviceId, status])
-  @@index([organizationId])
-  @@index([status])
+  // Relation to models/table requiring vulnerability status
+  serviceDetails ServiceDetails[]
+  victimsDetails VictimDetails[]
 }
 
 model PasswordReset {

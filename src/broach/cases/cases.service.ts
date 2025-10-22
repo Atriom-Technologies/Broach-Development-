@@ -101,8 +101,7 @@ export class CasesService {
         },
       }),
     };
-
-    // Create the case
+    
     await this.safeExecutor.run(
       () => this.repo.createCase(data),
       'Failed to create a case',

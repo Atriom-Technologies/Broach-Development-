@@ -61,7 +61,7 @@ const seedData = {
   ],
 };
 
-// ✅ A reusable function to seed enum tables safely
+//  A reusable function to seed enum tables safely
 async function seedEnumTable<K extends keyof typeof seedData>(
   modelName: K,
   tableName: 'sector' | 'caseType' | 'serviceType' | 'vulnerabilityStatus', // restrict to known table names
@@ -69,7 +69,7 @@ async function seedEnumTable<K extends keyof typeof seedData>(
   await safeExecutor.run(async () => {
     const data = seedData[modelName].map((name) => ({ name }));
 
-    // ✅ Type-safe access to Prisma model
+    // Type-safe access to Prisma model
     const model = (
       prisma as unknown as Record<
         typeof tableName,
@@ -78,11 +78,11 @@ async function seedEnumTable<K extends keyof typeof seedData>(
     )[tableName];
 
     await model.createMany({ data, skipDuplicates: true });
-    logger.verbose(`✅ ${tableName} seeded successfully`);
+    logger.verbose(`${tableName} seeded successfully`);
   }, `Failed to seed ${tableName}`);
 }
 
-// ✅ Seed execution
+// Seed execution
 async function main(): Promise<void> {
   await seedEnumTable('sectors', 'sector');
   await seedEnumTable('caseTypes', 'caseType');
@@ -95,7 +95,7 @@ main()
     logger.error('Unexpected error during seeding', (e as Error).stack);
   })
   .finally(() => {
-    void prisma.$disconnect(); // ✅ no Promise returned to ESLint
+    void prisma.$disconnect(); // no Promise returned to ESLint
   });
 
 /* import { PrismaClient } from '@prisma/client';
@@ -161,7 +161,7 @@ const seedData = {
   ],
 };
 
-// ✅ A reusable function to seed enum tables safely
+// A reusable function to seed enum tables safely
 async function seedEnumTable<K extends keyof typeof seedData>(
   modelName: K,
   tableName:
@@ -174,20 +174,20 @@ async function seedEnumTable<K extends keyof typeof seedData>(
     async () => {
       const data = seedData[modelName].map((name) => ({ name }));
 
-      // ✅ Type-safe access to Prisma model
+      //  Type-safe access to Prisma model
       const model = (prisma as unknown as Record<
         typeof tableName,
         { createMany: (args: unknown) => Promise<unknown> }
       >)[tableName];
 
       await model.createMany({ data, skipDuplicates: true });
-      logger.verbose(`✅ ${tableName} seeded successfully`);
+      logger.verbose(` ${tableName} seeded successfully`);
     },
     `Failed to seed ${tableName}`,
   );
 }
 
-// ✅ Seed execution
+//  Seed execution
 async function main(): Promise<void> {
   await seedEnumTable('sectors', 'sector');
   await seedEnumTable('caseTypes', 'caseType');
@@ -200,6 +200,6 @@ main()
     logger.error('Unexpected error during seeding', (e as Error).stack);
   })
   .finally(() => {
-    void prisma.$disconnect(); // ✅ no Promise returned to ESLint
+    void prisma.$disconnect(); // no Promise returned to ESLint
   });
  */

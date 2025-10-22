@@ -82,9 +82,11 @@ export class AuthController {
     const result = await this.authService.login(dto, ipAddress, userAgent);
     return {
       message: "Login successful",
-      authTOken: result.accessToken,
+      authToken: result.accessToken,
       UserType: result.userType,
-      isDetailsSubmitted: result.isProfileDetailsSubmitted
+      isDetailsSubmitted: result.isProfileDetailsSubmitted,
+      name: result.username,
+      imageUrl: result.imageUrl,
     }
   }
 
