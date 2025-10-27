@@ -1,11 +1,14 @@
 package com.example.broach.features.clarification.ui
 
-import android.R
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.broach.R
 import com.example.broach.databinding.ActivityClarificationPageBinding
 import com.example.broach.features.signup.ui.SignupActivity
 
@@ -20,7 +23,7 @@ class ClarificationActivity : AppCompatActivity() {
 
         // Set up the dropdown menu with the user categories
         val categories = arrayOf("Reporter/Requester", "Support Organization")
-        val adapter = ArrayAdapter(this, R.layout.simple_dropdown_item_1line, categories)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categories)
         binding.categoryDropdown.setAdapter(adapter)
 
         // Listen for item selection in the dropdown
@@ -40,5 +43,24 @@ class ClarificationActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please select a category.", Toast.LENGTH_SHORT).show()
             }
         }
+
+        // Show the user categories popup when the help text is clicked
+        binding.tvHelpText1.setOnClickListener {
+            showUserCategoriesPopup()
+        }
+    }
+
+    private fun showUserCategoriesPopup() {
+        val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val popupView = inflater.inflate(R.layout.popup_user_categories, null)
+
+        val popupWindow = PopupWindow(
+            popupView,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        popupWindow.showAsDropDown(binding.tvHelpText1)
     }
 }

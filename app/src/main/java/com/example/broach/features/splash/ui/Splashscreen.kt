@@ -1,55 +1,38 @@
 package com.example.broach.features.splash.ui
 
-import android.R
 import android.content.Intent
 import android.os.Bundle
-import android.os.Looper
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.broach.databinding.ActivitySplashscreenBinding
-import android.os.Handler // Correct import for android.os.Handler
+import com.example.broach.features.clarification.ui.ClarificationActivity
 
 class Splashscreen : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashscreenBinding
-    private lateinit var handler: Handler // Use the specific Handler class
-    private val autoNavigateRunnable = Runnable {
-        navigateToScreen2()
-    }
+    private lateinit var adapter: SplashscreenAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         binding = ActivitySplashscreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        handler = Handler(Looper.getMainLooper())
+        adapter = SplashscreenAdapter(this)
+        binding.viewPager.adapter = adapter
+    }
 
-        // Post delayed action to auto-navigate after 3 seconds
-        handler.postDelayed(autoNavigateRunnable, 3000) // 3000 ms = 3 seconds
-
-        // Set click listener for manual navigation
-        binding.btnNext.setOnClickListener {
-            navigateToScreen2()
+    fun next() {
+        if (binding.viewPager.currentItem < adapter.itemCount - 1) {
+            binding.viewPager.currentItem++
+        } else {
+            val intent = Intent(this, ClarificationActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 
-    private fun navigateToScreen2() {
-        // Cancel any pending auto-navigation (just in case)
-        handler.removeCallbacks(autoNavigateRunnable)
-
-        // Navigate to Screen2
-        startActivity(Intent(this, Splashscreen2::class.java))
-        finish()
-        overridePendingTransition(
-            R.anim.fade_in,
-            R.anim.fade_out
-        ) // Optional animation
-    }
-
-    override fun onDestroy() {
-        // Clean up handler to prevent memory leaks
-        handler.removeCallbacks(autoNavigateRunnable)
-        super.onDestroy()
+    fun previous() {
+        if (binding.viewPager.currentItem > 0) {
+            binding.viewPager.currentItem--
+        }
     }
 }

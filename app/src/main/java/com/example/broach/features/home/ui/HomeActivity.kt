@@ -14,11 +14,13 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val userRole = intent.getStringExtra("USER_ROLE")
+        val name = intent.getStringExtra("USER_NAME")
+        val imageUrl = intent.getStringExtra("USER_IMAGE_URL")
 
         val fragment = when (userRole) {
-            "Reporter/Requester" -> RequesterHomeFragment()
-            "Support Organization" -> OrganizationHomeFragment()
-            else -> RequesterHomeFragment() // Default fragment
+            "Reporter/Requester" -> RequesterHomeFragment.newInstance(name, imageUrl)
+            "Support Organization" -> OrganizationHomeFragment.newInstance(name, imageUrl)
+            else -> RequesterHomeFragment.newInstance(name, imageUrl) // Default fragment
         }
 
         supportFragmentManager.beginTransaction()

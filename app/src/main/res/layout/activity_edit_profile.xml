@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    tools:context=".features.profile.ui.EditProfileActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/white">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Edit Profile"
+            app:menu="@menu/edit_profile_menu" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/iv_profile_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_person"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_user_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/user_name"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/iv_profile_image"
+            app:layout_constraintTop_toTopOf="@id/iv_profile_image" />
+
+        <TextView
+            android:id="@+id/tv_change_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/change_profile_photo"
+            android:textColor="@color/primary_color2"
+            app:layout_constraintStart_toStartOf="@id/tv_user_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_user_name" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Fields -->
+    <EditText
+        android:id="@+id/et_full_name"
+        style="@style/EditProfileField"
+        android:hint="@string/user_name"
+        app:drawableStartCompat="@drawable/ic_person" />
+    <View style="@style/Divider"/>
+
+    <EditText
+        android:id="@+id/et_email"
+        style="@style/EditProfileField"
+        android:hint="@string/email_address"
+        app:drawableStartCompat="@drawable/ic_email" />
+    <View style="@style/Divider"/>
+
+    <EditText
+        android:id="@+id/et_phone"
+        style="@style/EditProfileField"
+        android:hint="@string/phone_number"
+        app:drawableStartCompat="@drawable/ic_phone" />
+    <View style="@style/Divider"/>
+
+    <EditText
+        android:id="@+id/et_dob"
+        style="@style/EditProfileField"
+        android:hint="@string/date_of_birth"
+        app:drawableStartCompat="@drawable/ic_calender" />
+    <View style="@style/Divider"/>
+
+    <EditText
+        android:id="@+id/et_occupation"
+        style="@style/EditProfileField"
+        android:hint="@string/occupation"
+        app:drawableStartCompat="@drawable/ic_work" />
+
+    <View style="@style/Divider"/>
+
+    <EditText
+        android:id="@+id/et_location"
+        style="@style/EditProfileField"
+        android:hint="@string/location"
+        app:drawableStartCompat="@drawable/ic_location" />
+    <View style="@style/Divider"/>
+
+</LinearLayout>

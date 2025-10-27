@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.example.broach.R
 import com.example.broach.databinding.FragmentRequesterHomeBinding
 import com.example.broach.features.home.ui.data.CaseHistoryAdapter
 import com.example.broach.features.home.ui.data.CaseHistoryItem
@@ -25,6 +27,10 @@ class RequesterHomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val name = arguments?.getString(ARG_NAME)
+        val imageUrl = arguments?.getString(ARG_IMAGE_URL)
+
         setupCaseHistoryRecyclerView()
         setupServiceHistoryRecyclerView()
 
@@ -38,7 +44,11 @@ class RequesterHomeFragment : Fragment() {
         }
 
         // Populate header details
-        binding.tvGreeting.text = "" // Replace with actual user name
+        binding.tvGreeting.text = "Hello, $name"
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_profile_placeholder) // Add a placeholder
+            .into(binding.ivUserProfile)
     }
 
     private fun setupCaseHistoryRecyclerView() {
@@ -71,5 +81,19 @@ class RequesterHomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val ARG_NAME = "USER_NAME"
+        private const val ARG_IMAGE_URL = "USER_IMAGE_URL"
+
+        fun newInstance(name: String?, imageUrl: String?): RequesterHomeFragment {
+            val fragment = RequesterHomeFragment()
+            val args = Bundle()
+            args.putString(ARG_NAME, name)
+            args.putString(ARG_IMAGE_URL, imageUrl)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }

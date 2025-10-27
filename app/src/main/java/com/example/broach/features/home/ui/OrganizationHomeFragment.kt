@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.example.broach.R
 import com.example.broach.databinding.FragmentOrganizationHomeBinding
 import com.example.broach.features.home.ui.data.OrganizationHistoryAdapter
 import com.example.broach.features.home.ui.data.OrganizationHistoryItem
@@ -25,6 +27,10 @@ class OrganizationHomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val name = arguments?.getString(ARG_NAME)
+        val imageUrl = arguments?.getString(ARG_IMAGE_URL)
+
         setupReceivedCasesRecyclerView()
         setupServiceHistoryRecyclerView()
 
@@ -38,7 +44,11 @@ class OrganizationHomeFragment : Fragment() {
         }
 
         // Populate header details
-        binding.tvGreeting.text = "Hi Charity Heart Foundation!" // Replace with actual organization name
+        binding.tvGreeting.text = "Hi, $name!"
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_profile_placeholder) // Add a placeholder
+            .into(binding.ivUserProfile)
     }
 
     private fun setupReceivedCasesRecyclerView() {
@@ -71,5 +81,19 @@ class OrganizationHomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val ARG_NAME = "USER_NAME"
+        private const val ARG_IMAGE_URL = "USER_IMAGE_URL"
+
+        fun newInstance(name: String?, imageUrl: String?): OrganizationHomeFragment {
+            val fragment = OrganizationHomeFragment()
+            val args = Bundle()
+            args.putString(ARG_NAME, name)
+            args.putString(ARG_IMAGE_URL, imageUrl)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }

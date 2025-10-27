@@ -2,7 +2,9 @@ package com.example.broach.network
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 // Data class for the signup request body
 data class SignupRequest(
@@ -38,7 +40,29 @@ data class LoginResponse(
     val message: String,
     val authToken: String,
     val userType: String,
-    val isDetailsSubmitted: Boolean
+    val isDetailsSubmitted: Boolean,
+    val name: String?,
+    val imageUrl: String?
+)
+
+// Data class for user profile
+data class UserProfile(
+    val fullName: String,
+    val email: String,
+    val phone: String,
+    val dob: String,
+    val occupation: String,
+    val location: String,
+    val profilePictureUrl: String
+)
+
+// Data class for updating user profile
+data class UpdateProfileRequest(
+    val fullName: String,
+    val phone: String,
+    val dob: String,
+    val occupation: String,
+    val location: String
 )
 
 interface ApiService {
@@ -56,6 +80,12 @@ interface ApiService {
 
     @POST("auth/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ResetPasswordResponse>
+
+    @GET("user/profile")
+    suspend fun getProfile(): Response<UserProfile>
+
+    @PUT("user/profile")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): Response<Unit>
 }
 
 

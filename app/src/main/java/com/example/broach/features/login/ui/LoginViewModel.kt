@@ -25,7 +25,12 @@ class LoginViewModel(private val repository: LoginRepository) : ViewModel() {
                 is Result.Success -> {
                     val role = result.data.userType ?: "Reporter/Requester"
                     val isDetailsSubmitted = result.data.isDetailsSubmitted
-                    LoginUiState.Success(userType = role, isDetailsSubmitted = isDetailsSubmitted)
+                    LoginUiState.Success(
+                        userType = role, 
+                        isDetailsSubmitted = isDetailsSubmitted,
+                        name = result.data.name,
+                        imageUrl = result.data.imageUrl
+                    )
                 }
                 is Result.Error -> {
                     LoginUiState.Error(message = "Login failed: ${result.exception.message}")

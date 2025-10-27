@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -43,6 +44,9 @@ android {
 }
 
 dependencies {
+    //Glide library
+    implementation(libs.glide)
+    kapt(libs.glide.compiler)
 
     implementation(libs.material.v1110)
 
@@ -61,6 +65,12 @@ dependencies {
 
     // CardView
     implementation(libs.androidx.cardview)
+
+    // CircleImageView
+    implementation(libs.circleimageview)
+
+    // Android Image Cropper
+    implementation(libs.android.image.cropper)
 
     implementation(project(":shared"))
 

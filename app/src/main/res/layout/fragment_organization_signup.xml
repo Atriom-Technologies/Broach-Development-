@@ -5,46 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary_color1">
+    android:background="@drawable/ic_background">
 
-    <View
-        android:id="@+id/view"
-        android:layout_width="match_parent"
-        android:layout_height="585dp"
-        android:layout_marginTop="376dp"
-        android:background="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
-
-    <ImageView
-        android:id="@+id/imageView5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/design_rec2"
-        app:layout_constraintBottom_toBottomOf="@+id/view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/view"
-        app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@drawable/rectangle_2" />
-
-    <ImageView
-        android:id="@+id/imageView7"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/view"
-        android:contentDescription="@string/design_rec3"
-        app:srcCompat="@drawable/rectangle_4" />
 
     <ImageView
         android:id="@+id/Broach_text"
@@ -66,49 +28,36 @@
         android:text="@string/create_your_account"
         android:textColor="#FFFFFF"
         android:textSize="26sp"
-        app:layout_constraintBottom_toTopOf="@+id/view"
+        app:layout_constraintBottom_toTopOf="@+id/tvDescription"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/Broach_text"
         app:layout_constraintVertical_bias="0.068" />
 
-    <ImageView
-        android:id="@+id/imageView11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/imageView5"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/view"
-        app:layout_constraintVertical_bias="1.0"
-        android:contentDescription="@string/design_rec"
-        app:srcCompat="@drawable/rectangle_3" />
-
     <TextView
         android:id="@+id/tvDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="130dp"
         android:text="@string/hello_please_complete"
         android:textAlignment="center"
-        android:textColor="@color/primary_color3"
+        android:textColor="@color/primary_color2"
         android:textSize="18sp"
-        app:layout_constraintTop_toTopOf="@id/view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/tilFullName"
-        android:layout_marginTop="20dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/dct_text" />
 
     <!-- Full Name -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilFullName"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
         app:counterMaxLength="50"
-        app:hintEnabled="true"
         android:hint="@string/organization_name"
         app:layout_constraintBottom_toTopOf="@+id/tilEmail"
         app:layout_constraintEnd_toEndOf="parent"
@@ -129,6 +78,7 @@
     <!-- Email -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilEmail"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -138,7 +88,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/tilPhone"
-        app:hintEnabled="true"
         android:hint="@string/email_address"
         app:startIconDrawable="@drawable/ic_email">
         <com.google.android.material.textfield.TextInputEditText
@@ -154,6 +103,7 @@
     <!-- Phone Number -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilPhone"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -163,7 +113,6 @@
         app:layout_constraintBottom_toTopOf="@id/tilPassword"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:hintEnabled="true"
         android:hint="@string/phone_contact"
         app:startIconDrawable="@drawable/ic_phone">
         <com.google.android.material.textfield.TextInputEditText
@@ -180,6 +129,7 @@
     <!-- Password -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilPassword"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -189,7 +139,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/tilConfirmPassword"
-        app:hintEnabled="true"
         android:hint="@string/preferred_password"
         app:startIconDrawable="@drawable/ic_lock"
         app:endIconMode="password_toggle"
@@ -208,6 +157,7 @@
     <!-- Confirm Password -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilConfirmPassword"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -217,7 +167,6 @@
         app:layout_constraintBottom_toTopOf="@id/btnSignUp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:hintEnabled="true"
         android:hint="@string/confirm_password"
         app:startIconDrawable="@drawable/ic_lock"
         app:endIconMode="password_toggle"
@@ -240,7 +189,7 @@
         android:layout_height="wrap_content"
         android:text="@string/sign_up"
         android:textColor="#FFFFFF"
-        android:background="@color/gray"
+        android:backgroundTint="@color/light_gray"
         app:layout_constraintTop_toBottomOf="@id/tilConfirmPassword"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -256,7 +205,7 @@
         android:layout_marginTop="20dp"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="@+id/view"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSignUp"
         app:layout_constraintVertical_bias="0.0"
         tools:layout_editor_absoluteX="0dp">

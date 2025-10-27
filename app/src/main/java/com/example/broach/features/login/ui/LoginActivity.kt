@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -64,6 +65,13 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this, SignupActivity::class.java)
             startActivity(intent)
         }
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                binding.loginLayout?.visibility = View.VISIBLE
+                binding.fragmentContainer?.visibility = View.GONE
+            }
+        }
     }
 
     private fun setupListeners() {
@@ -103,7 +111,7 @@ class LoginActivity : AppCompatActivity() {
                         binding.btnLogin?.isEnabled = true
                         hideLoadingDialog()
                         if (state.isDetailsSubmitted) {
-                            navigateToHomePage(state.userType)
+                            navigateToHomePage(state.userType, state.name, state.imageUrl)
                         } else {
                             navigateToDetailsPage(state.userType)
                         }
@@ -126,9 +134,11 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun navigateToHomePage(userRole: String) {
+    private fun navigateToHomePage(userRole: String, name: String?, imageUrl: String?) {
         val intent = Intent(this, HomeActivity::class.java).apply {
             putExtra("USER_ROLE", userRole)
+            putExtra("USER_NAME", name)
+            putExtra("USER_IMAGE_URL", imageUrl)
         }
         startActivity(intent)
         finish()

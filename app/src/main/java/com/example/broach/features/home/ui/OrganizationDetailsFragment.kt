@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import com.example.broach.R
 import com.example.broach.databinding.FragmentOrganizationDetailsBinding
 import java.util.Calendar
 
@@ -59,7 +60,7 @@ class OrganizationDetailsFragment : Fragment() {
     }
 
     private fun setupSectorDropdown() {
-        val sectors = arrayOf("Healthcare", "Education", "Technology", "Finance", "Other")
+        val sectors = resources.getStringArray(R.array.organization_sectors)
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, sectors)
         binding.tvSector.setAdapter(adapter)
     }
