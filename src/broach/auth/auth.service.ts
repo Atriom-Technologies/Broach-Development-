@@ -4,13 +4,15 @@ import {
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
+  Inject,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RegisterReqRepDto } from './dto/requestDtos/register-req-rep.dto';
+import { RegisterReqRepDto, RequesterCompleteProfileDto } from './dto/requestDtos/register-req-rep.dto';
 import * as argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
-import { UserType } from '@prisma/client';
-import { RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
+import { Prisma, UserType } from '@prisma/client';
+import { CompleteSupportOrgProfileDto, RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
 import { LoginDto } from './dto/requestDtos/login.dto';
 import { RefreshDto } from './dto/requestDtos/refresh.dto';
 import { TokenService } from './services/token.service';
@@ -18,12 +20,14 @@ import { SessionService } from './services/session.service';
 import { AppLogger } from 'src/logger/logger.service';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { ForbiddenException } from '@nestjs/common';
-import { ProfileStatusProvider } from './helper/profile-status.provider';
+import { ProfileStatusProvider } from '../../helper/profile-status.provider';
 import {
   ForgotPassword,
   ResetPassword,
 } from './dto/requestDtos/forgot-password.dto';
 import { randomBytes } from 'crypto';
+import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
+
 
 @Injectable()
 export class AuthService {
@@ -35,6 +39,8 @@ export class AuthService {
     private readonly logger: AppLogger,
     private readonly safeExecutor: SafeExecutor,
     private readonly profile: ProfileStatusProvider,
+    @Inject('CLOUDINARY')
+    private readonly cloudinary: typeof import('cloudinary').v2,
   ) {}
 
   async registerRequesterReporter(dto: RegisterReqRepDto, userType: UserType) {
@@ -47,6 +53,14 @@ export class AuthService {
         `Registration failed: Password mismatch for email: ${dto.email}`,
       );
       throw new BadRequestException('Passwords do not match');
+    }
+    
+    // Check if user type is requester_reporter before proceeding
+    if(userType !== UserType.requester_reporter) {
+      this.logger.warn(
+        `User ${dto.email} not a requester/reporter`
+      );
+      throw new UnauthorizedException('Did you mean to register as an organization?')
     }
 
     // Check if user exists to avoid duplicate email or phone
@@ -96,6 +110,118 @@ export class AuthService {
     }
   }
 
+  // complete the profile creation from another page before login
+async completeRequesterProfile(
+    dto: RequesterCompleteProfileDto,
+    userType: UserType,
+    file?: Express.Multer.File,
+  ) {
+    
+    // Check if user is reporter_requester before proceeding
+        if(userType !== 'requester_reporter') {
+      this.logger.warn(
+        `User not a requester/reporter`
+      );
+      throw new UnauthorizedException('Did you mean to register as an organization?')
+    }
+    // Fetch User by Id to check if user exists
+    const id = dto.userId;
+    const user = await this.safeExecutor.run(
+      () =>
+        this.prisma.user.findUnique({
+          where: { id },
+        }),
+      `Failed to fetch user id ${id}`,
+    );
+
+    // Check if user exists
+    if (!user) {
+      this.logger.warn(`No record for User: ${id}`);
+      throw new BadRequestException(`No record found`);
+    }
+
+    //  Handle profile picture
+    // let profilePictureUrl = dto.profilePicture; // fallback to plain URL
+    let profilePicture;
+
+    if (file) {
+      const uploadResult = await new Promise<UploadApiResponse>(
+        (resolve, reject) => {
+          this.cloudinary.uploader
+            .upload_stream(
+              {
+                folder: 'broach/profiles',
+                public_id: `${id}-profile`,
+                overwrite: true,
+                resource_type: 'image',
+              },
+
+              (
+                error: UploadApiErrorResponse | undefined,
+                result: UploadApiResponse | undefined,
+              ) => {
+                if (error) {
+                  reject(new InternalServerErrorException(error.message));
+                  return;
+                }
+                if (!result) {
+                  reject(new InternalServerErrorException('Upload failed'));
+                  return;
+                }
+                resolve(result);
+              },
+            )
+            .end(file.buffer);
+        },
+      );
+
+      profilePicture = uploadResult.secure_url 
+      // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
+    }
+
+    /**
+     * Prisma's upsert method is used here to either update an existing
+     * requester reporter profile or create a new one if it doesn't exist.
+     * This ensures that the profile is always in sync with the user's details.
+     * 
+     * We split the payloads into create and update to handle optional fields properly.
+     * For instance, if profilePicture is not provided during an update, we don't want to overwrite the existing picture with undefined.
+     */
+
+    //So, first we build the shared values
+    const data: Prisma.RequesterReporterProfileUpdateInput = {
+      user: { connect: { id: user.id } },
+      gender: dto.gender,
+      dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      occupation: dto.occupation,
+      ...(profilePicture && { profilePicture }),
+    };
+
+    // // Then we split into seperate types for upsert
+    // const updateData: Prisma.RequesterReporterProfileUpdateInput = {
+    //   ...baseData,
+    // }
+
+    // const createData: Prisma.RequesterReporterProfileCreateInput = {
+    //   ...baseData,
+    //   user: { connect: { id } }, // reconnect user in create
+    // }
+
+    this.logger.debug(`Profile completed for user: ${user.id}`);
+
+    //Update the requester profile data
+    await this.safeExecutor.run(
+      () =>
+        this.prisma.requesterReporterProfile.update({
+          where: { userId: user.id },
+          data,
+        }),
+      `Failed to update profile for user: ${user.id}`,
+    );
+
+  }
+
+  // Organization Registration
   async registerSupportOrganization(
     dto: RegisterSupportOrgDto,
     userType: UserType,
@@ -106,6 +232,14 @@ export class AuthService {
     // Check if password matches
     if (password !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
+    }
+
+        // Check if user type is requester_reporter before proceeding
+    if(userType !== UserType.support_organization) {
+      this.logger.warn(
+        `User ${dto.email} not a support organization`
+      );
+      throw new UnauthorizedException('Did you mean to register as a Requester/reporter?')
     }
 
     // Check if user exists to avoid duplicate email or phone
@@ -171,6 +305,128 @@ export class AuthService {
         userType: user.userType,
     };
   }
+
+
+    // complete the profile creation from another page before login
+async completeSupportOrgProfile(
+    dto: CompleteSupportOrgProfileDto,
+    userType: UserType,
+    file?: Express.Multer.File,
+  ) {
+    
+    // Check if user is reporter_requester before proceeding
+        if(userType !== UserType.support_organization) {
+      this.logger.warn(
+        `User not a Support Organization`
+      );
+      throw new UnauthorizedException('Did you mean to register as reporter/requester?')
+    }
+    // Fetch User by Id to check if user exists
+    const id = dto.userId;
+    const user = await this.safeExecutor.run(
+      () =>
+        this.prisma.user.findUnique({
+          where: { id },
+        }),
+      `Failed to fetch user id ${id}`,
+    );
+
+    // Check if user exists
+    if (!user) {
+      this.logger.warn(`No record for User: ${id}`);
+      throw new BadRequestException(`ID: ${id} not found`);
+    }
+
+    //  Handle profile picture
+    // let profilePictureUrl = dto.profilePicture; // fallback to plain URL
+      let organizationLogo: string | undefined;
+
+    if (file) {
+      const uploadResult = await new Promise<UploadApiResponse>(
+        (resolve, reject) => {
+          this.cloudinary.uploader
+            .upload_stream(
+              {
+                folder: 'broach/profiles',
+                public_id: `${user.id}-Organization-profile`,
+                overwrite: true,
+                resource_type: 'image',
+              },
+
+              (
+                error: UploadApiErrorResponse | undefined,
+                result: UploadApiResponse | undefined,
+              ) => {
+                if (error) {
+                  reject(new InternalServerErrorException(error.message));
+                  return;
+                }
+                if (!result) {
+                  reject(new InternalServerErrorException('Upload failed'));
+                  return;
+                }
+                resolve(result);
+              },
+            )
+            .end(file.buffer);
+        },
+      );
+
+        organizationLogo = (uploadResult as UploadApiResponse).secure_url;
+      // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
+    }
+
+    /**
+     * Prisma's upsert method is used here to either update an existing
+     * requester reporter profile or create a new one if it doesn't exist.
+     * This ensures that the profile is always in sync with the user's details.
+     * 
+     * We split the payloads into create and update to handle optional fields properly.
+     * For instance, if profilePicture is not provided during an update, we don't want to overwrite the existing picture with undefined.
+     */
+
+    //So, first we build the shared values
+    const data: Prisma.SupportOrgProfileUpdateInput = {
+      user: { connect: { id: user.id } },
+      address: dto.address,
+      dateEstablished: dto.dateEstablished ? new Date(dto.dateEstablished) : undefined,
+      organizationSize: dto.organizationSize,
+      alternatePhone: dto.alternatePhone,
+      ...(organizationLogo && { organizationLogo }),
+      sectors: {
+      deleteMany: {}, // remove existing links
+      create: dto.sectorId.map((sectorId) => ({ sectorId })) || [],
+    },
+    };
+
+
+    // // Then we split into seperate types for upsert
+    // const updateData: Prisma.RequesterReporterProfileUpdateInput = {
+    //   ...baseData,
+    // }
+
+    // const createData: Prisma.RequesterReporterProfileCreateInput = {
+    //   ...baseData,
+    //   user: { connect: { id } }, // reconnect user in create
+    // }
+
+    this.logger.debug(`Profile completed for user: ${user.id}`);
+
+    //Update the requester profile data
+    await this.safeExecutor.run(
+      () =>
+        this.prisma.supportOrgProfile.update({
+          where: { userId: user.id },
+          data,
+          include: {
+            sectors: true,
+          }
+        }),
+      `Failed to update profile for user: ${user.id}`,
+    );
+  }
+
+
 
   // Login logic
   async login(dto: LoginDto, ipAddress: string, userAgent: string) {
@@ -240,7 +496,7 @@ export class AuthService {
     
     // THis code checks if user has profile details already submitted.
     // It will help front end to redirect user to desired entry page.
-    const isProfileDetailsSubmitted = await this.profile.isProfileDetailsSubmitted(user.id, user.userType)
+    const isProfileDetailsSubmitted = await this.profile.isProfileDetailsSubmitted(user.id)
 
     // Return tokens and user info
     return {
@@ -258,7 +514,7 @@ export class AuthService {
             : user.supportOrgProfile?.organizationName,
       imageUrl: user.userType === 'requester_reporter'
         ? user.requesterReporterProfile?.profilePicture
-        : user.supportOrgProfile?.organizationLogo,
+        : user.supportOrgProfile?.organizationLogoUrl,
     };
   }
 

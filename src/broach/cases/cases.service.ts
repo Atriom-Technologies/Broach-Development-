@@ -11,12 +11,14 @@ import { Prisma } from '@prisma/client';
 import { CaseRepository } from './repository/case.repository';
 import { PaginationDto } from './dto/pagination.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CasesService {
   constructor(
     private readonly repo: CaseRepository,
     private readonly safeExecutor: SafeExecutor,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Submit a case
@@ -102,10 +104,19 @@ export class CasesService {
       }),
     };
     
-    await this.safeExecutor.run(
-      () => this.repo.createCase(data),
+    const caseRecord = await this.safeExecutor.run(
+      () => this.repo.createCase({
+        data,
+        include: {
+          requesterReporterProfile: { include: { user: true } },
+          caseType: true,
+          victimDetails: true,
+          assailantDetails: true,
+        }
+      }),
       'Failed to create a case',
     );
+    this.eventEmitter.emit('case.created', {caseDetails: caseRecord });
   }
 
   async getCaseById(id: string) {

@@ -9,11 +9,15 @@ import {
   UseGuards,
   Delete,
   Get,
+  UseInterceptors,
+  BadRequestException,
+  Patch,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterReqRepDto } from './dto/requestDtos/register-req-rep.dto';
-import { RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
+import { RegisterReqRepDto, RequesterCompleteProfileDto } from './dto/requestDtos/register-req-rep.dto';
+import { CompleteSupportOrgProfileDto, RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
 import { UserType } from '@prisma/client';
 import { LoginDto } from './dto/requestDtos/login.dto';
 import { Ip } from 'src/common/decorators/ip.decorator';
@@ -25,10 +29,11 @@ import {
   ForgotPassword,
   ResetPassword,
 } from './dto/requestDtos/forgot-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-@ApiTags('Auth')
+@ApiTags('User')
 @ApiBearerAuth()
-@Controller('auth')
+@Controller('user')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -58,6 +63,39 @@ export class AuthController {
       };
   }
 
+    // Complete Requester Profile
+    @UseInterceptors(
+      FileInterceptor('profilePicture', {
+        limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
+        fileFilter: (req, file, cb) => {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+            return cb(
+              new BadRequestException('Only JPG/PNG images are allowed'),
+              false,
+            );
+          }
+          cb(null, true);
+        },
+      }),
+    )
+    @ApiConsumes('multipart/form-data')
+    @Patch('register')
+    async completeRequesterProfile(
+      @Body() dto: RequesterCompleteProfileDto,
+      @UploadedFile() file: Express.Multer.File,
+    ) {
+      const userType =  UserType.requester_reporter
+
+      await this.authService.completeRequesterProfile(
+        dto,
+        userType,
+        file,
+      );
+      return {
+        message: `Profile updated successfully.`
+      }
+    }
+
   @Post('register/organization')
   @HttpCode(HttpStatus.CREATED)
   async registerSupportOrg(@Body() dto: RegisterSupportOrgDto) {
@@ -71,6 +109,41 @@ export class AuthController {
         userId: result.id,  // Match Kotlin exactly
       };
   }
+
+
+    // Complete organization Profile
+    @UseInterceptors(
+      FileInterceptor('organizationLogo', {
+        limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
+        fileFilter: (req, file, cb) => {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+            return cb(
+              new BadRequestException('Only JPG/PNG images are allowed'),
+              false,
+            );
+          }
+          cb(null, true);
+        },
+      }),
+    )
+    @ApiConsumes('multipart/form-data')
+    @Patch('register/organization')
+    async completeSupportOrgProfile(
+      @Body() dto: CompleteSupportOrgProfileDto,
+      @UploadedFile() file: Express.Multer.File,
+    ) {
+      const userType =  UserType.support_organization
+
+      await this.authService.completeSupportOrgProfile(
+        dto,
+        userType,
+        file,
+      );
+      return {
+        message: `Profile updated successfully.`
+      }
+    }
+
 
   @Post('login')
   @HttpCode(HttpStatus.OK)

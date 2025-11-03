@@ -9,7 +9,8 @@ import { TokenService } from './services/token.service';
 import { SessionService } from './services/session.service';
 import { LoggerModule } from 'src/logger/logger.module';
 import { UtilsModule } from 'src/utils/utils.module';
-import { ProfileStatusProvider } from './helper/profile-status.provider';
+import { ProfileStatusProvider } from '../../helper/profile-status.provider';
+import { CloudinaryProvider } from 'src/cloudinary/cloudinary.provider';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { ProfileStatusProvider } from './helper/profile-status.provider';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TokenService, SessionService, ProfileStatusProvider],
+  providers: [AuthService, JwtStrategy, TokenService, SessionService, ProfileStatusProvider, CloudinaryProvider],
   exports: [AuthService],
 })
 export class AuthModule {}

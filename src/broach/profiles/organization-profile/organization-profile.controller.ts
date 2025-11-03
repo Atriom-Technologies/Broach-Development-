@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Get,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/broach/auth/guards/jwt-auth.guard';
@@ -16,21 +17,40 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RequestWithUserPayload } from 'src/broach/auth/interfaces/jwt-payload.interface';
 import { OrganizationProfileService } from './organization-profile.service';
-import { OrganizationProfileDto } from './dto/organization-profile.dto';
+import { EditOrganizationProfileDto, OrganizationProfileDto } from './dto/organization-profile.dto';
 
 @ApiTags('Organization Profile')
 @ApiBearerAuth()
-@Controller('organization-profile')
+@Controller('organization')
 export class OrganizationProfileController {
   constructor(
     private readonly organizationProfileService: OrganizationProfileService,
   ) {}
 
+  // Get Organization profiled details
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserType.support_organization)
+    @Get('profile')
+    async getOrganizationProfileDetails(@Req() req: RequestWithUserPayload) {
+      const userId = req.user.id;
+      const result = await this.organizationProfileService.getOrganizationProfileDetails(userId)
+      return {
+        organizationName: result.supportOrgProfile?.organizationName,
+        email: result.email,
+        phone: result.phone,
+        dateFounded: result.supportOrgProfile?.dateEstablished,
+        category: result.supportOrgProfile?.sectors,
+        address: result.supportOrgProfile?.address,
+        profilePictureUrl: result.supportOrgProfile?.organizationLogoUrl,
+        coverPhotoUrl: result.supportOrgProfile?.organizationLogoUrl,
+      }
+    }
+
+  // Edit Organization Profile Picture
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.support_organization)
-  @Patch('update')
-  @UseInterceptors(
-    FileInterceptor('organizationLogo', {
+    @UseInterceptors(
+    FileInterceptor('organizationLogoUrl', {
       limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
       fileFilter: (req, file, cb) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
@@ -43,17 +63,65 @@ export class OrganizationProfileController {
       },
     }),
   )
-  @ApiConsumes('multipart/form-data')
-  async updateRequesterProfile(
-    @Body() dto: OrganizationProfileDto,
+  @Patch('profile/picture')
+  async editOrgProfilePicture(
+    @Req() req: RequestWithUserPayload,
     @UploadedFile() file: Express.Multer.File,
+  ){
+    const userId = req.user.id; // from auth guard
+    const result = await this.organizationProfileService.editOrganizationProfilePicture(userId, file);
+    return {
+      message: 'Profile picture updated',
+      imageUrl: result?.organizationLogoUrl
+    } 
+  }
+
+
+  // Edit Cover Photo
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+    @UseInterceptors(
+    FileInterceptor('coverPhotoUrl', {
+      limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+          return cb(
+            new BadRequestException('Only JPG/PNG images are allowed'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  @Patch('profile/cover')
+  async editCoverPhoto(
+    @Req() req: RequestWithUserPayload,
+    @UploadedFile() file: Express.Multer.File,
+  ){
+    const userId = req.user.id; // from auth guard
+    const result = await this.organizationProfileService.editOrganizationCoverPhoto(userId, file);
+    return {
+      message: 'Cover photo updated successfully',
+      imageUrl: result.coverPhotoUrl
+    } 
+  }
+   
+
+  // Edit one or more Organization Profile details-- TO make changes to existing profile details
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  @Patch('profile')
+  async editRequesterProfile(
+    @Body() dto: EditOrganizationProfileDto,
     @Req() req: RequestWithUserPayload,
   ) {
     const userId = req.user.id; // from auth guard
-    return this.organizationProfileService.updateOrganizationProfile(
-      dto,
-      userId,
-      file,
-    );
+    await this.organizationProfileService.editOrganizationProfileDetails(userId, dto);
+    return{
+      success: true,
+      message: 'Profile updated',
+    }
   }
+
 }

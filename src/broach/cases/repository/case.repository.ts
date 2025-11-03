@@ -34,14 +34,8 @@ export class CaseRepository {
   }
 
   // Case Details CRUD operations
-  async createCase(data: Prisma.CaseDetailsCreateInput) {
-    return this.prisma.caseDetails.create({
-      data,
-      include: {
-        victimDetails: true,
-        assailantDetails: true,
-      },
-    });
+  async createCase(args: Prisma.CaseDetailsCreateArgs) {
+    return this.prisma.caseDetails.create(args);
   }
 
   async getCaseById(id: string) {

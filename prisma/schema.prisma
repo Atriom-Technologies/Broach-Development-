@@ -121,6 +121,8 @@ model RequesterReporterProfile {
   dateOfBirth    DateTime?
   occupation     String?
   profilePicture String?
+  coverPhoto     String?
+  location       String?
 
   userId String @unique
 
@@ -135,14 +137,15 @@ model RequesterReporterProfile {
 }
 
 model SupportOrgProfile {
-  id               String    @id @default(uuid())
-  organizationName String
-  customSector     String? // Accepts data when the other field is field not available in the sector list
-  dateEstablished  DateTime?
-  organizationSize OrgSize?
-  address          String?
-  alternatePhone   String?
-  organizationLogo String?
+  id                  String    @id @default(uuid())
+  organizationName    String
+  customSector        String? // Accepts data when the other field is field not available in the sector list
+  dateEstablished     DateTime?
+  organizationSize    OrgSize?
+  address             String?
+  alternatePhone      String?
+  organizationLogoUrl String?
+  coverPhotoUrl       String?
 
   userId String @unique
 
@@ -312,9 +315,11 @@ model Sector {
   name String @unique
 
   // Relation to other models requiring sectors (support organization sector)
-  organizations     SupportOrgSector[]
-  CaseTypeSector    CaseTypeSector[]
-  ServiceTypeSector ServiceTypeSector[]
+  organizations SupportOrgSector[]
+  /**
+   * CaseTypeSector    CaseTypeSector[]
+   * ServiceTypeSector ServiceTypeSector[]
+   */
 }
 
 model ServiceType {
@@ -322,8 +327,8 @@ model ServiceType {
   name String @unique
 
   // Relation to models/table requiring service type
-  serviceDetails    ServiceDetails[]
-  ServiceTypeSector ServiceTypeSector[]
+  serviceDetails ServiceDetails[]
+  // ServiceTypeSector ServiceTypeSector[]
 }
 
 /**
@@ -331,19 +336,18 @@ model ServiceType {
  * - Service request can be associatated with more than one sector
  * - A join table that connects the sector and typeOfService
  */
-
-model ServiceTypeSector {
-  id            String      @id @default(uuid())
-  serviceTypeId String
-  sectorId      String
-  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
-  sector        Sector      @relation(fields: [sectorId], references: [id], onDelete: Cascade)
-
-  @@unique([serviceTypeId, sectorId])
-  @@index([serviceTypeId])
-  @@index([sectorId])
-}
-
+/**
+ * model ServiceTypeSector {
+ * id            String      @id @default(uuid())
+ * serviceTypeId String
+ * sectorId      String
+ * serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
+ * sector        Sector      @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+ * @@unique([serviceTypeId, sectorId])
+ * @@index([serviceTypeId])
+ * @@index([sectorId])
+ * }
+ */
 // ================== SERVICE ASSIGNMENT ==================
 model ServiceAssignment {
   id             String           @id @default(uuid())
@@ -368,8 +372,8 @@ model CaseType {
   name String @unique
 
   // Relations to modele/tables requiring casetype models
-  cases          CaseDetails[]
-  CaseTypeSector CaseTypeSector[]
+  cases CaseDetails[]
+  // CaseTypeSector CaseTypeSector[]
 }
 
 /**
@@ -377,17 +381,18 @@ model CaseType {
  * -- A case report can be associated with more than one sector
  * -- A join table that connects the sector table and type of case
  */
-model CaseTypeSector {
-  id         String   @id @default(uuid())
-  caseTypeId String
-  sectorId   String
-  caseType   CaseType @relation(fields: [caseTypeId], references: [id], onDelete: Cascade)
-  sector     Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
-
-  @@unique([caseTypeId, sectorId])
-  @@index([caseTypeId])
-  @@index([sectorId])
-}
+/**
+ * model CaseTypeSector {
+ * id         String   @id @default(uuid())
+ * caseTypeId String
+ * sectorId   String
+ * caseType   CaseType @relation(fields: [caseTypeId], references: [id], onDelete: Cascade)
+ * sector     Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+ * @@unique([caseTypeId, sectorId])
+ * @@index([caseTypeId])
+ * @@index([sectorId])
+ * }
+ */
 
 // ================== CASE ASSIGNMENT ==================
 model CaseAssignment {

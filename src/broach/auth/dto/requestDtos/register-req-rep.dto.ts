@@ -1,13 +1,17 @@
 import { Transform } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import {
   IsEmail,
-  IsPhoneNumber,
   IsString,
+  IsDateString,
+  IsEnum,
   MinLength,
+  IsOptional,
   Matches,
+  IsUUID,
 } from 'class-validator';
 import { Match } from 'src/utils/validators/match.decorator';
+import { Gender } from '@prisma/client';
 
 export class RegisterReqRepDto {
   @ApiProperty({
@@ -32,15 +36,14 @@ export class RegisterReqRepDto {
 
   @ApiProperty({
     description: 'Phone number of the user',
-    example: '+2348012345678',
-  })
+    example: '+2348012345678 or 08012345678',
+  }) 
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
-  @Matches(/^\+?[1-9]\d{7,14}$/, {
-    message: 'phone must be in format +2348012345678',
+  @Matches(/^(?:0\d{10}|\+234\d{10})$/, {
+    message: 'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
   })
-  @IsPhoneNumber()
   phone: string;
 
   @ApiProperty({
@@ -62,4 +65,46 @@ export class RegisterReqRepDto {
   )
   @Match('password', { message: 'Password do not match' })
   confirmPassword: string;
+}
+
+
+export class RequesterCompleteProfileDto {
+  @ApiProperty({
+    description: 'User ID',
+  })
+  @IsUUID()
+  userId: string;
+
+
+  @ApiProperty({
+    description: 'Gender of the user',
+    example: 'male',
+  })
+  @IsEnum(Gender)
+  gender: Gender;
+
+  @ApiProperty({
+    description: 'Date of birth of the user',
+    example: '1987-05-10', 
+  })
+  @IsDateString()
+  dateOfBirth: string;
+
+  @ApiProperty({
+    description: 'Occupation of the user',
+    example: 'Engineer',
+  })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  @IsString()
+  occupation: string;
+
+  // @ApiProperty({description: 'Covert or URL'})
+  // @IsOptional()
+  // coverPhotoUrl?: string
+
+  // @ApiProperty({ type: 'string', format: 'binary', required: false })
+  // @IsOptional()
+  // profilePicture?: string;
 }

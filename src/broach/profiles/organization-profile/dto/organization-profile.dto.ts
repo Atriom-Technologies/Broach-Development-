@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { OrgSize } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
@@ -7,7 +7,9 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
+import { string } from 'joi';
 
 export class OrganizationProfileDto {
   @ApiProperty({ required: false })
@@ -53,4 +55,37 @@ export class OrganizationProfileDto {
   @IsArray()
   @IsString({ each: true })
   sectors: string[];
+}
+
+
+
+
+export class EditOrganizationProfileDto extends PickType(OrganizationProfileDto, ['dateEstablished', 'address', 'sectors'] as const) {
+  @ApiProperty({
+    description: 'Phone number of the user',
+    example: '+1234567890',})
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({
+    description: 'Full name',
+    example: 'John Doe',})
+  @Transform(({ value }: { value: unknown }) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  @IsOptional()
+  @IsString()
+  organizationName?: string;
+
+  @ApiProperty({
+    description: " Sector ID(s)",
+    isArray: true,
+    type: String
+  })
+  @IsOptional()
+  @IsUUID('all', { each: true })
+  sectors: string[];
+
+
 }

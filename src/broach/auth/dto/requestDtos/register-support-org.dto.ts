@@ -1,5 +1,7 @@
-import { Transform } from 'class-transformer';
-import { IsEmail, IsPhoneNumber, IsString, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { OrgSize } from '@prisma/client';
+import { Transform, Type } from 'class-transformer';
+import { IsDateString, IsEmail, IsEnum, IsOptional, IsString, IsUUID, Matches, MinLength } from 'class-validator';
 import { Match } from 'src/utils/validators/match.decorator';
 
 /* enum Sector {
@@ -26,30 +28,55 @@ import { Match } from 'src/utils/validators/match.decorator';
 } */
 
 export class RegisterSupportOrgDto {
+  @ApiProperty({
+    description: 'Name of the organization',
+    example: 'Helping Hands Initiative',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   @IsString()
   organizationName: string;
 
+
+  @ApiProperty({
+    description: 'Email address of the organization'
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
   @IsEmail()
   email: string;
 
+
+  @ApiProperty({
+    description: 'Phone number of the organization',
+    example: '+2348012345678 or 08012345678',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
-  @IsPhoneNumber()
+  @Matches(/^(?:0\d{10}|\+234\d{10})$/, {
+  message: 'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
+  })
   phone: string;
 
+
+  @ApiProperty({
+    description: 'Password for the organization account',
+    example: 'strongPassword123',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
   @MinLength(6)
   password: string;
 
+
+  @ApiProperty({
+    description: 'Confirmation of the password',
+    example: 'strongPassword123',
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
@@ -89,4 +116,68 @@ export class RegisterSupportOrgDto {
   @Transform(({ value }: { value: unknown }) => typeof value == 'string' ? value.trim(): value,)
   sectors: String[];
 */
+}
+
+
+export class CompleteSupportOrgProfileDto {
+  @ApiProperty({
+    description: 'User ID',
+  })
+  @IsUUID()
+  userId: string;
+
+// Sector Id of the organizations selected.
+  @ApiProperty({
+    description: 'IDs of the selected sectors',
+    example: ['b2f0a4a3-8b10-4d3b-98f1-5df28a3e7e3c'],
+    isArray: true,
+  })
+  @IsUUID('all', { each: true })
+  @IsOptional()
+  @Type(() => String)
+  sectorId: string[];
+
+
+  // date the organization was established
+  @ApiProperty({
+    description: 'date established of the organization',
+    example: '2000-01-01',
+  })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  @IsDateString()
+  dateEstablished: string;
+
+// size of the organization
+  @ApiProperty({
+    description: 'size of the organization',
+    example: 'size_5_10',
+  })
+  @IsEnum(OrgSize)
+  organizationSize: OrgSize;
+
+// address of the organization
+  @ApiProperty({
+  description: 'Organization address',
+  example: '123 Main St, Lagos, Nigeria',
+  })
+  @Transform(({ value }: { value: unknown }) =>
+  typeof value === 'string' ? value.trim() : value,
+  )
+  @IsString()
+  address: string
+
+  // alternate phone number of the organization
+  @ApiProperty({
+    description: 'Alternate phone number of the organization',
+    example: '+2348012345678 or 08012345678',
+  })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsString()
+  alternatePhone: string;
+
+
 }

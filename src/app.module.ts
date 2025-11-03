@@ -14,6 +14,8 @@ import { RequesterProfileModule } from './broach/profiles/requester-profile/requ
 import { OrganizationProfileModule } from './broach/profiles/organization-profile/organization-profile.module';
 import { ResourceModule } from './resource/resource.module';
 import * as Joi from 'joi';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+// import { NotificationModule } from './broach/notification/notification.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import * as Joi from 'joi';
     RequesterProfileModule,
     OrganizationProfileModule,
     ResourceModule,
+    EventEmitterModule.forRoot(),
+    // NotificationModule,
   ],
   controllers: [AppController],
   providers: [
