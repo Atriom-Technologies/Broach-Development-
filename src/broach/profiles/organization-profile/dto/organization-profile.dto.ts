@@ -9,7 +9,6 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { string } from 'joi';
 
 export class OrganizationProfileDto {
   @ApiProperty({ required: false })
@@ -37,7 +36,7 @@ export class OrganizationProfileDto {
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
-  organizationLogo?: string;
+  organizationLogoUrl?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

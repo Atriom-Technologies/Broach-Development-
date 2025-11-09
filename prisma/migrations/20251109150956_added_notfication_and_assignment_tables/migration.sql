@@ -17,9 +17,6 @@ CREATE TYPE "public"."Location" AS ENUM ('victim_home', 'perpetrator_home', 'neu
 CREATE TYPE "public"."CaseStatus" AS ENUM ('pending', 'in_discussion', 'resolved', 'closed');
 
 -- CreateEnum
-CREATE TYPE "public"."AssignmentStatus" AS ENUM ('pending', 'accepted', 'rejected');
-
--- CreateEnum
 CREATE TYPE "public"."AgeRange" AS ENUM ('less_than_18', 'from_18_to_25', 'from_26_to_35', 'from_36_to_45', 'above_45');
 
 -- CreateEnum
@@ -30,6 +27,15 @@ CREATE TYPE "public"."NoOfAssailants" AS ENUM ('less_than_2', 'from_2_5', 'from_
 
 -- CreateEnum
 CREATE TYPE "public"."MaritalStatus" AS ENUM ('single', 'married', 'separated', 'divorced');
+
+-- CreateEnum
+CREATE TYPE "public"."EngagementType" AS ENUM ('CASE_REPORT', 'SERVICE_REQUEST');
+
+-- CreateEnum
+CREATE TYPE "public"."NotificationStatus" AS ENUM ('pending', 'in_discussion', 'closed');
+
+-- CreateEnum
+CREATE TYPE "public"."AssignmentStatus" AS ENUM ('pending', 'in_discussion', 'closed');
 
 -- CreateTable
 CREATE TABLE "public"."User" (
@@ -48,10 +54,12 @@ CREATE TABLE "public"."User" (
 CREATE TABLE "public"."RequesterReporterProfile" (
     "id" TEXT NOT NULL,
     "fullName" TEXT NOT NULL,
-    "gender" "public"."Gender" NOT NULL,
-    "dateOfBirth" TIMESTAMP(3) NOT NULL,
-    "occupation" TEXT NOT NULL,
+    "gender" "public"."Gender",
+    "dateOfBirth" DATE,
+    "occupation" TEXT,
     "profilePicture" TEXT,
+    "coverPhoto" TEXT,
+    "location" TEXT,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "RequesterReporterProfile_pkey" PRIMARY KEY ("id")
@@ -60,15 +68,25 @@ CREATE TABLE "public"."RequesterReporterProfile" (
 -- CreateTable
 CREATE TABLE "public"."SupportOrgProfile" (
     "id" TEXT NOT NULL,
-    "fullName" TEXT NOT NULL,
+    "organizationName" TEXT NOT NULL,
     "customSector" TEXT,
-    "dateEstablished" TIMESTAMP(3) NOT NULL,
-    "organizationSize" "public"."OrgSize" NOT NULL,
+    "dateEstablished" DATE,
+    "organizationSize" "public"."OrgSize",
+    "address" TEXT,
     "alternatePhone" TEXT,
-    "organizationLogo" TEXT,
+    "organizationLogoUrl" TEXT,
+    "coverPhotoUrl" TEXT,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "SupportOrgProfile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."Sector" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "Sector_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -94,14 +112,22 @@ CREATE TABLE "public"."RefreshSession" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."CaseType" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "CaseType_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."CaseDetails" (
     "id" TEXT NOT NULL,
     "requesterReporterProfileId" TEXT,
     "caseTypeId" TEXT NOT NULL,
     "whoIsReporting" "public"."WhoIsReporting" NOT NULL,
-    "location" "public"."Location" NOT NULL,
+    "location" "public"."Location",
     "description" VARCHAR(200) NOT NULL,
-    "infoConfirmed" BOOLEAN NOT NULL,
+    "infoConfirmed" BOOLEAN NOT NULL DEFAULT false,
     "caseStatus" "public"."CaseStatus" NOT NULL DEFAULT 'pending',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -131,6 +157,22 @@ CREATE TABLE "public"."AssailantDetails" (
     "ageRange" "public"."AgeRange" NOT NULL,
 
     CONSTRAINT "AssailantDetails_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."ServiceType" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "ServiceType_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."VulnerabilityStatus" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "VulnerabilityStatus_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -164,59 +206,45 @@ CREATE TABLE "public"."ServiceDetails" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Sector" (
+CREATE TABLE "public"."PasswordReset" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Sector_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "PasswordReset_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."CaseType" (
+CREATE TABLE "public"."Notification" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-
-    CONSTRAINT "CaseType_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."VulnerabilityStatus" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-
-    CONSTRAINT "VulnerabilityStatus_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."ServiceType" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-
-    CONSTRAINT "ServiceType_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "public"."CaseAssignment" (
-    "id" TEXT NOT NULL,
-    "caseId" TEXT NOT NULL,
-    "organizationId" TEXT,
-    "status" "public"."AssignmentStatus" NOT NULL DEFAULT 'pending',
+    "type" "public"."EngagementType" NOT NULL,
+    "relatedId" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "receiverId" TEXT NOT NULL,
+    "assignmentId" TEXT,
+    "message" TEXT,
+    "status" "public"."NotificationStatus" NOT NULL DEFAULT 'pending',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "readAt" TIMESTAMP(3),
 
-    CONSTRAINT "CaseAssignment_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."ServiceAssignment" (
+CREATE TABLE "public"."Assignment" (
     "id" TEXT NOT NULL,
-    "serviceId" TEXT NOT NULL,
-    "organizationId" TEXT,
+    "type" "public"."EngagementType" NOT NULL,
+    "relatedId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "reporterId" TEXT NOT NULL,
     "status" "public"."AssignmentStatus" NOT NULL DEFAULT 'pending',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "assignedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "closedAt" TIMESTAMP(3),
 
-    CONSTRAINT "ServiceAssignment_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Assignment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -229,10 +257,22 @@ CREATE UNIQUE INDEX "User_phone_key" ON "public"."User"("phone");
 CREATE INDEX "User_userType_idx" ON "public"."User"("userType");
 
 -- CreateIndex
+CREATE INDEX "User_email_idx" ON "public"."User"("email");
+
+-- CreateIndex
+CREATE INDEX "User_id_idx" ON "public"."User"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "RequesterReporterProfile_userId_key" ON "public"."RequesterReporterProfile"("userId");
 
 -- CreateIndex
 CREATE INDEX "RequesterReporterProfile_fullName_idx" ON "public"."RequesterReporterProfile"("fullName");
+
+-- CreateIndex
+CREATE INDEX "RequesterReporterProfile_id_idx" ON "public"."RequesterReporterProfile"("id");
+
+-- CreateIndex
+CREATE INDEX "RequesterReporterProfile_userId_idx" ON "public"."RequesterReporterProfile"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SupportOrgProfile_userId_key" ON "public"."SupportOrgProfile"("userId");
@@ -241,10 +281,16 @@ CREATE UNIQUE INDEX "SupportOrgProfile_userId_key" ON "public"."SupportOrgProfil
 CREATE INDEX "SupportOrgProfile_userId_idx" ON "public"."SupportOrgProfile"("userId");
 
 -- CreateIndex
-CREATE INDEX "SupportOrgProfile_fullName_idx" ON "public"."SupportOrgProfile"("fullName");
+CREATE INDEX "SupportOrgProfile_organizationName_idx" ON "public"."SupportOrgProfile"("organizationName");
 
 -- CreateIndex
 CREATE INDEX "SupportOrgProfile_customSector_idx" ON "public"."SupportOrgProfile"("customSector");
+
+-- CreateIndex
+CREATE INDEX "SupportOrgProfile_id_idx" ON "public"."SupportOrgProfile"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Sector_name_key" ON "public"."Sector"("name");
 
 -- CreateIndex
 CREATE INDEX "SupportOrgSector_sectorId_idx" ON "public"."SupportOrgSector"("sectorId");
@@ -260,6 +306,9 @@ CREATE INDEX "RefreshSession_userId_expiresAt_idx" ON "public"."RefreshSession"(
 
 -- CreateIndex
 CREATE INDEX "RefreshSession_expiresAt_idx" ON "public"."RefreshSession"("expiresAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CaseType_name_key" ON "public"."CaseType"("name");
 
 -- CreateIndex
 CREATE INDEX "CaseDetails_requesterReporterProfileId_idx" ON "public"."CaseDetails"("requesterReporterProfileId");
@@ -295,6 +344,12 @@ CREATE UNIQUE INDEX "AssailantDetails_caseId_key" ON "public"."AssailantDetails"
 CREATE INDEX "AssailantDetails_caseId_idx" ON "public"."AssailantDetails"("caseId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ServiceType_name_key" ON "public"."ServiceType"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VulnerabilityStatus_name_key" ON "public"."VulnerabilityStatus"("name");
+
+-- CreateIndex
 CREATE INDEX "ServiceRequests_requesterReporterProfileId_idx" ON "public"."ServiceRequests"("requesterReporterProfileId");
 
 -- CreateIndex
@@ -316,40 +371,40 @@ CREATE UNIQUE INDEX "ServiceDetails_serviceRequestId_key" ON "public"."ServiceDe
 CREATE INDEX "ServiceDetails_serviceTypeId_idx" ON "public"."ServiceDetails"("serviceTypeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Sector_name_key" ON "public"."Sector"("name");
+CREATE UNIQUE INDEX "PasswordReset_userId_key" ON "public"."PasswordReset"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CaseType_name_key" ON "public"."CaseType"("name");
+CREATE UNIQUE INDEX "PasswordReset_token_key" ON "public"."PasswordReset"("token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "VulnerabilityStatus_name_key" ON "public"."VulnerabilityStatus"("name");
+CREATE INDEX "PasswordReset_userId_idx" ON "public"."PasswordReset"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ServiceType_name_key" ON "public"."ServiceType"("name");
+CREATE INDEX "PasswordReset_expiresAt_idx" ON "public"."PasswordReset"("expiresAt");
 
 -- CreateIndex
-CREATE INDEX "CaseAssignment_caseId_status_idx" ON "public"."CaseAssignment"("caseId", "status");
+CREATE INDEX "PasswordReset_createdAt_idx" ON "public"."PasswordReset"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "CaseAssignment_organizationId_idx" ON "public"."CaseAssignment"("organizationId");
+CREATE INDEX "Notification_type_idx" ON "public"."Notification"("type");
 
 -- CreateIndex
-CREATE INDEX "CaseAssignment_status_idx" ON "public"."CaseAssignment"("status");
+CREATE INDEX "Notification_senderId_idx" ON "public"."Notification"("senderId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CaseAssignment_caseId_organizationId_key" ON "public"."CaseAssignment"("caseId", "organizationId");
+CREATE INDEX "Notification_receiverId_idx" ON "public"."Notification"("receiverId");
 
 -- CreateIndex
-CREATE INDEX "ServiceAssignment_serviceId_status_idx" ON "public"."ServiceAssignment"("serviceId", "status");
+CREATE INDEX "Notification_relatedId_idx" ON "public"."Notification"("relatedId");
 
 -- CreateIndex
-CREATE INDEX "ServiceAssignment_organizationId_idx" ON "public"."ServiceAssignment"("organizationId");
+CREATE INDEX "Assignment_relatedId_type_idx" ON "public"."Assignment"("relatedId", "type");
 
 -- CreateIndex
-CREATE INDEX "ServiceAssignment_status_idx" ON "public"."ServiceAssignment"("status");
+CREATE INDEX "Assignment_organizationId_idx" ON "public"."Assignment"("organizationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ServiceAssignment_serviceId_organizationId_key" ON "public"."ServiceAssignment"("serviceId", "organizationId");
+CREATE INDEX "Assignment_reporterId_idx" ON "public"."Assignment"("reporterId");
 
 -- AddForeignKey
 ALTER TABLE "public"."RequesterReporterProfile" ADD CONSTRAINT "RequesterReporterProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -394,13 +449,19 @@ ALTER TABLE "public"."ServiceDetails" ADD CONSTRAINT "ServiceDetails_serviceType
 ALTER TABLE "public"."ServiceDetails" ADD CONSTRAINT "ServiceDetails_vulnerabilityStatusId_fkey" FOREIGN KEY ("vulnerabilityStatusId") REFERENCES "public"."VulnerabilityStatus"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."CaseAssignment" ADD CONSTRAINT "CaseAssignment_caseId_fkey" FOREIGN KEY ("caseId") REFERENCES "public"."CaseDetails"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."PasswordReset" ADD CONSTRAINT "PasswordReset_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."CaseAssignment" ADD CONSTRAINT "CaseAssignment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."SupportOrgProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ServiceAssignment" ADD CONSTRAINT "ServiceAssignment_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "public"."ServiceRequests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ServiceAssignment" ADD CONSTRAINT "ServiceAssignment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."SupportOrgProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_assignmentId_fkey" FOREIGN KEY ("assignmentId") REFERENCES "public"."Assignment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Assignment" ADD CONSTRAINT "Assignment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Assignment" ADD CONSTRAINT "Assignment_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

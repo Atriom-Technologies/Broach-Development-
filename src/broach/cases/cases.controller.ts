@@ -44,7 +44,7 @@ export class CasesController {
       success: true,
       message: {
         title: 'Case Reported',
-        body: 'Your case has been submitted successfully. It will be reviewed and reported to the relevant organizations as necessary. you will be notified of any updates regarding your case in your message tab. Check regularly for updates. Please remember that false reporting can have serious consequences, so ensure that the information you provide is accurate and truthful.',
+        body: 'Your case has been submitted successfully. It will be reviewed and reported to relevant organizations as necessary. You will be notified of any update regarding your case in your message tab. Check regularly for updates. Remember, false report can have serious consequences, so ensure that the information you provide is accurate and truthful.',
       },
     };
   }

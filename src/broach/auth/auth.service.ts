@@ -142,7 +142,7 @@ async completeRequesterProfile(
 
     //  Handle profile picture
     // let profilePictureUrl = dto.profilePicture; // fallback to plain URL
-    let profilePicture;
+    let profilePicture: string | undefined;
 
     if (file) {
       const uploadResult = await new Promise<UploadApiResponse>(
@@ -194,6 +194,7 @@ async completeRequesterProfile(
       gender: dto.gender,
       dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       occupation: dto.occupation,
+      location: dto.location,
       ...(profilePicture && { profilePicture }),
     };
 
@@ -207,7 +208,6 @@ async completeRequesterProfile(
     //   user: { connect: { id } }, // reconnect user in create
     // }
 
-    this.logger.debug(`Profile completed for user: ${user.id}`);
 
     //Update the requester profile data
     await this.safeExecutor.run(
@@ -218,6 +218,8 @@ async completeRequesterProfile(
         }),
       `Failed to update profile for user: ${user.id}`,
     );
+
+        this.logger.debug(`Profile completed for user: ${user.id}`);
 
   }
 
@@ -339,7 +341,7 @@ async completeSupportOrgProfile(
 
     //  Handle profile picture
     // let profilePictureUrl = dto.profilePicture; // fallback to plain URL
-      let organizationLogo: string | undefined;
+      let organizationLogoUrl: string | undefined;
 
     if (file) {
       const uploadResult = await new Promise<UploadApiResponse>(
@@ -372,7 +374,7 @@ async completeSupportOrgProfile(
         },
       );
 
-        organizationLogo = (uploadResult as UploadApiResponse).secure_url;
+        organizationLogoUrl = (uploadResult as UploadApiResponse).secure_url;
       // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
     }
 
@@ -392,8 +394,8 @@ async completeSupportOrgProfile(
       dateEstablished: dto.dateEstablished ? new Date(dto.dateEstablished) : undefined,
       organizationSize: dto.organizationSize,
       alternatePhone: dto.alternatePhone,
-      ...(organizationLogo && { organizationLogo }),
-      sectors: {
+      ...(organizationLogoUrl && { organizationLogoUrl }),
+      supportOrgSector: {
       deleteMany: {}, // remove existing links
       create: dto.sectorId.map((sectorId) => ({ sectorId })) || [],
     },
@@ -419,7 +421,7 @@ async completeSupportOrgProfile(
           where: { userId: user.id },
           data,
           include: {
-            sectors: true,
+            supportOrgSector: true,
           }
         }),
       `Failed to update profile for user: ${user.id}`,

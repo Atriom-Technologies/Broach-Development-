@@ -39,7 +39,7 @@ export class OrganizationProfileController {
         email: result.email,
         phone: result.phone,
         dateFounded: result.supportOrgProfile?.dateEstablished,
-        category: result.supportOrgProfile?.sectors,
+        category: result.supportOrgProfile?.supportOrgSector,
         address: result.supportOrgProfile?.address,
         profilePictureUrl: result.supportOrgProfile?.organizationLogoUrl,
         coverPhotoUrl: result.supportOrgProfile?.organizationLogoUrl,

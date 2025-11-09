@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { AssignmentStatus } from '@prisma/client';
 
 @Injectable()
 export class CaseRepository {
@@ -10,6 +9,9 @@ export class CaseRepository {
   async findUserById(id: string) {
     return this.prisma.user.findFirst({
       where: { id },
+      include: {
+        requesterReporterProfile: true,
+      }
       // select: { userType: true }
     });
   }
@@ -34,7 +36,8 @@ export class CaseRepository {
   }
 
   // Case Details CRUD operations
-  async createCase(args: Prisma.CaseDetailsCreateArgs) {
+  async createCase(args: Prisma.CaseDetailsCreateArgs, tx?: Prisma.TransactionClient) {
+    const prisma = tx ?? this.prisma;
     return this.prisma.caseDetails.create(args);
   }
 

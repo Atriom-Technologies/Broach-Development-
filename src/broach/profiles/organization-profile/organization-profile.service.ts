@@ -42,7 +42,7 @@ export class OrganizationProfileService {
             select: {
               organizationName: true,
               dateEstablished: true,
-              sectors: {
+              supportOrgSector: {
                 select:{
                   sectorId: true,
                 }
@@ -277,7 +277,7 @@ export class OrganizationProfileService {
        * (sectorId + organizationId) to avoid duplicates in the SupportOrgSector table.
        */
       if (dto.sectors && dto.sectors.length > 0) {
-        data.sectors = {
+        data.supportOrgSector = {
           connectOrCreate: dto.sectors.map((sectorId) => ({
             where: {
               sectorId_organizationId: {   // compound unique constraint

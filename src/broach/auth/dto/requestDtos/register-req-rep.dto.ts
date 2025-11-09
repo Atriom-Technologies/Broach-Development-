@@ -100,6 +100,14 @@ export class RequesterCompleteProfileDto {
   @IsString()
   occupation: string;
 
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @Transform(({ value }: { value: string }) =>
+      typeof value === 'string' ? value.trim() : value,
+    )
+    @IsString()
+    location?: string;
+
   // @ApiProperty({description: 'Covert or URL'})
   // @IsOptional()
   // coverPhotoUrl?: string

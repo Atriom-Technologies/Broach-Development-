@@ -5,13 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SafeExecutor } from 'src/utils/safe-execute';
-import { UserType } from '@prisma/client';
+import { EngagementType, NotificationStatus, UserType } from '@prisma/client';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { Prisma } from '@prisma/client';
 import { CaseRepository } from './repository/case.repository';
 import { PaginationDto } from './dto/pagination.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { NotificationService } from '../notification/notification.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CasesService {
@@ -19,6 +21,8 @@ export class CasesService {
     private readonly repo: CaseRepository,
     private readonly safeExecutor: SafeExecutor,
     private readonly eventEmitter: EventEmitter2,
+    private readonly notificationService: NotificationService,
+    private readonly prisma: PrismaService,
   ) {}
 
   // Submit a case
@@ -73,50 +77,77 @@ export class CasesService {
           `Invalid type. Please select a valid vulenerable status`,
         );
     }
-    // Build the data to be created
-    const data: Prisma.CaseDetailsCreateInput = {
-      requesterReporterProfile: { connect: { id: profile.id } },
-      caseType: { connect: { id: caseType.id } },
-      whoIsReporting: dto.whoIsReporting,
-      location: dto.location,
-      description: dto.description,
-      infoConfirmed: dto.infoConfirmed,
 
-      ...(dto.victimDetails && {
-        victimDetails: {
-          create: {
-            ageRange: dto.victimDetails.ageRange,
-            employmentStatus: dto.victimDetails.employmentStatus,
-            gender: dto.victimDetails.gender,
-            vulnerabilityStatusId: dto.victimDetails.vulnerabilityStatusId,
-          },
-        },
-      }),
+    /**
+     * Run case and report submission and notification of organization as a transaction
+     * The custom safe executor helper function wraps try catch function, takes two arguments. 
+     * Takes the function to be executed in the try block and error message for the catch block
+     */
+    return this.safeExecutor.run(async () => {
+      return this.prisma.$transaction( async (tx) => {
+                // Build the data to be created
+        const data: Prisma.CaseDetailsCreateInput = {
+          requesterReporterProfile: { connect: { id: profile.id } },
+          caseType: { connect: { id: caseType.id } },
+          whoIsReporting: dto.whoIsReporting,
+          location: dto.location,
+          description: dto.description,
+          infoConfirmed: dto.infoConfirmed,
 
-      ...(dto.assailantDetails && {
-        assailantDetails: {
-          create: {
-            noOfAssailants: dto.assailantDetails.noOfPeople,
-            gender: dto.assailantDetails.gender,
-            ageRange: dto.assailantDetails.ageRange,
+          ...(dto.victimDetails && {
+            victimDetails: {
+              create: {
+                ageRange: dto.victimDetails.ageRange,
+                employmentStatus: dto.victimDetails.employmentStatus,
+                gender: dto.victimDetails.gender,
+                vulnerabilityStatusId: dto.victimDetails.vulnerabilityStatusId,
+              },
+            },
+          }),
+
+          ...(dto.assailantDetails && {
+            assailantDetails: {
+              create: {
+                noOfAssailants: dto.assailantDetails.noOfPeople,
+                gender: dto.assailantDetails.gender,
+                ageRange: dto.assailantDetails.ageRange,
+              },
+            },
+          }),
+        };
+
+
+        // Create case via repo
+        const caseRecord = await this.repo.createCase(
+          {
+            data,
+            include: {
+              requesterReporterProfile: { include: { user: true } },
+              caseType: true,
+              victimDetails: true,
+              assailantDetails: true,
+            },
           },
-        },
-      }),
-    };
-    
-    const caseRecord = await this.safeExecutor.run(
-      () => this.repo.createCase({
-        data,
-        include: {
-          requesterReporterProfile: { include: { user: true } },
-          caseType: true,
-          victimDetails: true,
-          assailantDetails: true,
-        }
-      }),
-      'Failed to create a case',
-    );
-    this.eventEmitter.emit('case.created', {caseDetails: caseRecord });
+          tx,
+        );
+
+
+
+        // Create notification for all organizations atomically... Bros browse about am if you no know. me sef no sabi am..
+        const count = await this.notificationService.createNotificationForAllOrgs(
+          {
+            senderId: user.id,
+            relatedId: caseRecord.id,
+            type: EngagementType.CASE_REPORT,
+            message: `Hello! You've got New Case Report from ${user.requesterReporterProfile?.fullName}`,
+            status: NotificationStatus.pending
+          },
+          tx,
+        );
+
+      })
+    },` Failed to Execute transactions for case creation and notification`)
+
   }
 
   async getCaseById(id: string) {

@@ -57,12 +57,6 @@ enum CaseStatus {
   closed
 }
 
-enum AssignmentStatus {
-  pending // available for any org to take
-  accepted // locked by an org
-  rejected // org declined → can be reopened
-}
-
 enum AgeRange {
   less_than_18
   from_18_to_25
@@ -106,11 +100,18 @@ model User {
   supportOrgProfile        SupportOrgProfile?
   passwordReset            PasswordReset?
 
+  // Relation to child  (Notification) model
+  sentNotifications         Notification[]   @relation("SentNotifications")
+  receivedNotifications     Notification[]   @relation("ReceivedNotifications")
+  // Relation to child table (assignment)
+  AssignedOrganization      Assignment[]     @relation("AssignedOrganization")
+  AssignedRequesterReporter Assignment[]     @relation("AssignedRequesterReporter")
   //Relation to child model/tables
-  refreshSessions RefreshSession[] //  one-to-many relation
+  refreshSessions           RefreshSession[] //  one-to-many relation
 
   @@index([userType])
   @@index([email])
+  @@index([id])
 }
 
 // ======================PROFILE MODELS=======================
@@ -118,7 +119,7 @@ model RequesterReporterProfile {
   id             String    @id @default(uuid())
   fullName       String
   gender         Gender?
-  dateOfBirth    DateTime?
+  dateOfBirth    DateTime? @db.Date
   occupation     String?
   profilePicture String?
   coverPhoto     String?
@@ -134,13 +135,15 @@ model RequesterReporterProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([fullName])
+  @@index([id])
+  @@index([userId])
 }
 
 model SupportOrgProfile {
   id                  String    @id @default(uuid())
   organizationName    String
   customSector        String? // Accepts data when the other field is field not available in the sector list
-  dateEstablished     DateTime?
+  dateEstablished     DateTime? @db.Date
   organizationSize    OrgSize?
   address             String?
   alternatePhone      String?
@@ -150,18 +153,33 @@ model SupportOrgProfile {
   userId String @unique
 
   // Child modles
-  sectors            SupportOrgSector[] // An organization can have multiple sectors of operation
-  CaseAssignments    CaseAssignment[] // An organization can be assigned more than one case report
-  ServiceAssignments ServiceAssignment[] // An organization can accept more than one service request
+  //sectors            SupportOrgSector[] // An organization can have multiple sectors of operation
+  //CaseAssignments    CaseAssignment[] // An organization can be assigned more than one case report
+  //ServiceAssignments ServiceAssignment[] // An organization can accept more than one service request
   // Relation to parent table/model
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  supportOrgSector SupportOrgSector[]
 
   @@index([userId])
   @@index([organizationName])
   @@index([customSector])
+  @@index([id])
 }
 
-// ======================SUPPORT ORGANIZATION SECTOR MODEL=======================
+// ========================================================================SUPPORT ORGANIZATION SECTOR MODEL====================================================
+
+// This sector model is a dictionary model/table that stores all the sectors available for support organizations to choose from
+model Sector {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relation to other models requiring sectors (support organization sector)
+  organizations SupportOrgSector[]
+  /**
+   * CaseTypeSector    CaseTypeSector[]
+   * ServiceTypeSector ServiceTypeSector[]
+   */
+}
 
 // A junction table/model that stores lists of sectors an organization operates in during registration
 // An organization can operate in multiple sectors
@@ -177,9 +195,12 @@ model SupportOrgSector {
   @@unique([sectorId, organizationId]) // Ensure a sector is not duplicated for the same organization
   @@index([sectorId])
   @@index([organizationId])
+  @@index([id])
 }
 
-// ======================REFRESH SESSION MODEL=======================
+// ==================================================================================================================================================================
+
+// ======================================================REFRESH SESSION MODEL=====================================================================================
 model RefreshSession {
   id           String   @id @default(uuid())
   userId       String
@@ -193,9 +214,24 @@ model RefreshSession {
 
   @@index([userId, expiresAt]) // Needed to fetch sessions per user quickly
   @@index([expiresAt])
+  @@index([id])
 }
 
-// ====================================================CASE REPORT MODELS==========================================================
+// ===============================================================================================================================================================
+
+// ====================================================CASE REPORT MODELS==========================================================================================
+model CaseType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relations to modele/tables requiring casetype models
+  cases CaseDetails[]
+  // CaseTypeSector CaseTypeSector[]
+
+  @@index([id])
+  @@index([name])
+}
+
 model CaseDetails {
   id                         String  @id @default(uuid())
   requesterReporterProfileId String?
@@ -210,7 +246,7 @@ model CaseDetails {
   // Relations with child models/tables
   victimDetails    VictimDetails?
   assailantDetails AssailantDetails?
-  caseAssignments  CaseAssignment[]
+  //caseAssignments  CaseAssignment[]
 
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
@@ -225,6 +261,7 @@ model CaseDetails {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([deletedAt])
+  @@index([id])
 }
 
 model VictimDetails {
@@ -258,7 +295,32 @@ model AssailantDetails {
   @@index([caseId])
 }
 
-// ==========================SERVICE REQUEST MODELS===========================
+// ===============================================================================================================================================================
+
+// ==============================================================SERVICE REQUEST MODELS=========================================================================
+
+model ServiceType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relation to models/table requiring service type
+  serviceDetails ServiceDetails[]
+
+  // ServiceTypeSector ServiceTypeSector[]
+  @@index([id])
+}
+
+model VulnerabilityStatus {
+  id   String @id @default(uuid())
+  name String @unique
+
+  // Relation to models/table requiring vulnerability status
+  serviceDetails ServiceDetails[]
+  victimsDetails VictimDetails[]
+
+  @@index([id])
+}
+
 model ServiceRequests {
   id                         String  @id @default(uuid())
   requesterReporterProfileId String?
@@ -275,8 +337,8 @@ model ServiceRequests {
   deletedAt DateTime?
 
   // Relation to child models/tables
-  serviceDetails     ServiceDetails?
-  serviceAssignments ServiceAssignment[]
+  serviceDetails ServiceDetails?
+  // serviceAssignments ServiceAssignment[]
 
   // Relation to parent models/tables
   requesterReporterProfile RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
@@ -286,6 +348,7 @@ model ServiceRequests {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([deletedAt])
+  @@index([id])
 }
 
 model ServiceDetails {
@@ -307,31 +370,10 @@ model ServiceDetails {
   @@index([serviceTypeId])
 }
 
-// Enums stored as models/tables for scalabiity
-
-// This sector model is a dictionary model/table that stores all the sectors available for support organizations to choose from
-model Sector {
-  id   String @id @default(uuid())
-  name String @unique
-
-  // Relation to other models requiring sectors (support organization sector)
-  organizations SupportOrgSector[]
-  /**
-   * CaseTypeSector    CaseTypeSector[]
-   * ServiceTypeSector ServiceTypeSector[]
-   */
-}
-
-model ServiceType {
-  id   String @id @default(uuid())
-  name String @unique
-
-  // Relation to models/table requiring service type
-  serviceDetails ServiceDetails[]
-  // ServiceTypeSector ServiceTypeSector[]
-}
+//=================================================================================================================================================================
 
 /**
+ * Enums stored as models/tables for scalabiity
  * - Service request can be submitted to more than one organization
  * - Service request can be associatated with more than one sector
  * - A join table that connects the sector and typeOfService
@@ -349,32 +391,23 @@ model ServiceType {
  * }
  */
 // ================== SERVICE ASSIGNMENT ==================
-model ServiceAssignment {
-  id             String           @id @default(uuid())
-  serviceId      String
-  organizationId String?
-  status         AssignmentStatus @default(pending)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-
-  // Relations
-  service      ServiceRequests    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([serviceId, organizationId]) // prevent duplicates
-  @@index([serviceId, status])
-  @@index([organizationId])
-  @@index([status])
-}
-
-model CaseType {
-  id   String @id @default(uuid())
-  name String @unique
-
-  // Relations to modele/tables requiring casetype models
-  cases CaseDetails[]
-  // CaseTypeSector CaseTypeSector[]
-}
+/**
+ * model ServiceAssignment {
+ * id             String           @id @default(uuid())
+ * serviceId      String
+ * organizationId String?
+ * status         AssignmentStatus @default(pending)
+ * createdAt      DateTime         @default(now())
+ * updatedAt      DateTime         @updatedAt
+ * // Relations
+ * service      ServiceRequests    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+ * organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+ * @@unique([serviceId, organizationId]) // prevent duplicates
+ * @@index([serviceId, status])
+ * @@index([organizationId])
+ * @@index([status])
+ * }
+ */
 
 /**
  * -- A case report can be submitted to more than one organization
@@ -395,32 +428,23 @@ model CaseType {
  */
 
 // ================== CASE ASSIGNMENT ==================
-model CaseAssignment {
-  id             String           @id @default(uuid())
-  caseId         String
-  organizationId String?
-  status         AssignmentStatus @default(pending)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-
-  // Relations
-  case         CaseDetails        @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([caseId, organizationId]) // prevent duplicates
-  @@index([caseId, status])
-  @@index([organizationId])
-  @@index([status])
-}
-
-model VulnerabilityStatus {
-  id   String @id @default(uuid())
-  name String @unique
-
-  // Relation to models/table requiring vulnerability status
-  serviceDetails ServiceDetails[]
-  victimsDetails VictimDetails[]
-}
+/**
+ * model CaseAssignment {
+ * id             String           @id @default(uuid())
+ * caseId         String
+ * organizationId String?
+ * status         AssignmentStatus @default(pending)
+ * createdAt      DateTime         @default(now())
+ * updatedAt      DateTime         @updatedAt
+ * // Relations
+ * case         CaseDetails        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+ * organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+ * @@unique([caseId, organizationId]) // prevent duplicates
+ * @@index([caseId, status])
+ * @@index([organizationId])
+ * @@index([status])
+ * }
+ */
 
 model PasswordReset {
   id        String   @id @default(uuid())
@@ -434,4 +458,66 @@ model PasswordReset {
   @@index([userId])
   @@index([expiresAt])
   @@index([createdAt])
+  @@index([id])
 }
+
+// ============================================================================NOTIFICATION MODEL ================================================================
+model Notification {
+  id           String             @id // uses cuid() V2 to improve performance. search about it to know more
+  type         EngagementType
+  relatedId    String // Case/report ID or serviceRequest Id
+  senderId     String // reporter or requester of case
+  receiverId   String // Organization Id
+  assignmentId String?
+  message      String?            @db.Text
+  status       NotificationStatus @default(pending)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  readAt       DateTime?
+
+  sender     User        @relation("SentNotifications", fields: [senderId], references: [id])
+  receiver   User        @relation("ReceivedNotifications", fields: [receiverId], references: [id])
+  assignment Assignment? @relation(fields: [assignmentId], references: [id])
+
+  @@index([type])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([relatedId])
+  @@index([id])
+}
+
+enum EngagementType {
+  CASE_REPORT
+  SERVICE_REQUEST
+}
+
+enum NotificationStatus {
+  pending
+  in_discussion
+  closed
+}
+
+//==========================================================================================================================================================================
+
+//=========================================An ASSIGNMENT TABLE THAT RECORDS WHICH ORGANIZATION HANDLES A CASE OR SERVICE=====================================================
+model Assignment {
+  id             String             @id @default(uuid())
+  type           EngagementType
+  relatedId      String
+  organizationId String
+  reporterId     String
+  status         NotificationStatus @default(in_discussion)
+  assignedAt     DateTime           @default(now())
+  closedAt       DateTime?
+
+  organization User           @relation("AssignedOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
+  reporter     User           @relation("AssignedRequesterReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  notification Notification[] // back-link for traceability
+
+  @@index([relatedId, type])
+  @@index([organizationId])
+  @@index([reporterId])
+  @@index([id])
+}
+
+// =======================================================================================================================================================
