@@ -90,6 +90,91 @@ export class ServiceRequestService {
     );
   }
 
+
+
+
+
+
+
+
+
+    /**
+     * Run case and report submission and notification of organization as a transaction
+     * The custom safe executor helper function wraps try catch function, takes two arguments. 
+     * Takes the function to be executed in the try block and error message for the catch block
+     */
+   /*  return this.safeExecutor.run(async () => {
+      return this.prisma.$transaction( async (tx) => {
+                // Build the data to be created
+        const data: Prisma.CaseDetailsCreateInput = {
+          requesterReporterProfile: { connect: { id: profile.id } },
+          caseType: { connect: { id: caseType.id } },
+          whoIsReporting: dto.whoIsReporting,
+          location: dto.location,
+          description: dto.description,
+          infoConfirmed: dto.infoConfirmed,
+
+          ...(dto.victimDetails && {
+            victimDetails: {
+              create: {
+                ageRange: dto.victimDetails.ageRange,
+                employmentStatus: dto.victimDetails.employmentStatus,
+                gender: dto.victimDetails.gender,
+                vulnerabilityStatusId: dto.victimDetails.vulnerabilityStatusId,
+              },
+            },
+          }),
+
+          ...(dto.assailantDetails && {
+            assailantDetails: {
+              create: {
+                noOfAssailants: dto.assailantDetails.noOfPeople,
+                gender: dto.assailantDetails.gender,
+                ageRange: dto.assailantDetails.ageRange,
+              },
+            },
+          }),
+        };
+
+
+        // Create case via repo
+        const caseRecord = await this.repo.createCase(
+          {
+            data,
+            include: {
+              requesterReporterProfile: { include: { user: true } },
+              caseType: true,
+              victimDetails: true,
+              assailantDetails: true,
+            },
+          },
+          tx,
+        );
+
+
+
+        // Create notification for all organizations atomically... Bros browse about am if you no know. me sef no sabi am..
+        const count = await this.notificationService.createNotificationForAllOrgs(
+          {
+            senderId: user.id,
+            relatedId: caseRecord.id,
+            type: EngagementType.CASE_REPORT,
+            message: `Hello! You've got New Case Report from ${user.requesterReporterProfile?.fullName}`,
+            status: NotificationStatus.pending
+          },
+          tx,
+        );
+
+      })
+    },` Failed to Execute transactions for case creation and notification`)
+
+ */
+
+
+
+
+
+
   // Fetch a service request by ID
   async getServiceRequest(id: string) {
     return this.safeExecutor.run(
