@@ -22,7 +22,6 @@ enum UserType {
 enum Gender {
   male
   female
-  mixed
 }
 
 enum OrgSize {
