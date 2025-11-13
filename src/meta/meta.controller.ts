@@ -1,7 +1,7 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { MetaService } from './meta.service';
 import { JwtAuthGuard } from 'src/broach/auth/guards/jwt-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 
 @ApiTags('Meta')
@@ -11,6 +11,35 @@ export class MetaController {
   constructor(private readonly metaService: MetaService) {}
 
   // Return all enums
+  @ApiOperation({ summary: 'Fetch enums and lookup data for dropdowns or selects' })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Specify which enum or lookup table to fetch (optional).',
+    enum: [
+      // Enums
+      'userType',
+      'gender',
+      'organizationSize',
+      'whoIsReporting',
+      'location',
+      'caseStatus',
+      'ageRange',
+      'EemploymentStatus',
+      'noOfAssailants',
+      'maritalStatus',
+      // Lookup Tables
+      'sectors',
+      'caseTypes',
+      'serviceTypes',
+      'vulnerabilityStatuses',
+    ],
+    example: 'caseTypes',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns either all enums/lookups or a single type if provided.',
+  })
   @Get()
   async getMeta(@Query('type') type?: string) {
     // Single enum fetch
