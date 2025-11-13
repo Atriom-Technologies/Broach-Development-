@@ -25,7 +25,7 @@ export class MetaController {
       'location',
       'caseStatus',
       'ageRange',
-      'EemploymentStatus',
+      'employmentStatus',
       'noOfAssailants',
       'maritalStatus',
       // Lookup Tables
