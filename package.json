@@ -26,6 +26,7 @@
     "prisma:reset": "dotenv -e .env -- prisma migrate reset",
     "prisma:studio": "dotenv -e .env -- prisma studio",
     "prisma:seed": "ts-node -r tsconfig-paths/register src/prisma/seed.ts",
+    "prisma:seed:dev": "dotenv -e .env.development -- ts-node -r tsconfig-paths/register src/prisma/seed.ts",
     "prisma:prod:migrate": "cross-env NODE_ENV=production node prisma-env.js migrate deploy",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",

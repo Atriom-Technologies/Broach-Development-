@@ -12,10 +12,11 @@ import { CasesModule } from './broach/cases/cases.module';
 import { ServiceRequestModule } from './broach/service-request/service-request.module';
 import { RequesterProfileModule } from './broach/profiles/requester-profile/requester-profile.module';
 import { OrganizationProfileModule } from './broach/profiles/organization-profile/organization-profile.module';
-import { ResourceModule } from './resource/resource.module';
 import * as Joi from 'joi';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 // import { NotificationModule } from './broach/notification/notification.module';
+import { MetaService } from './meta/meta.service';
+import { MetaModule } from './meta/meta.module';
 
 @Module({
   imports: [
@@ -45,8 +46,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ServiceRequestModule,
     RequesterProfileModule,
     OrganizationProfileModule,
-    ResourceModule,
     EventEmitterModule.forRoot(),
+    MetaModule,
     // NotificationModule,
   ],
   controllers: [AppController],
@@ -56,6 +57,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    MetaService,
   ],
 })
 export class AppModule {}
