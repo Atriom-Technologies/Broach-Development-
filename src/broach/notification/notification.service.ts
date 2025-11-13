@@ -1,7 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createId } from '@paralleldrive/cuid2';
 import { EngagementType, NotificationStatus, Prisma, PrismaClient } from '@prisma/client';
+import { NotificationResponseDto } from './dto/notificaton-response.dto';
+import { NotificationActionDto } from './dto/notification.dto';
 
 
 @Injectable()
@@ -72,52 +74,131 @@ export class NotificationService{
     }
 }
 
-// @Injectable()
-// export class NotificationService {
+//     // Get all notifications for a user (org or reporter)
+//     async getNotificationsForUser(userId: string, status?: string): Promise<NotificationResponseDto[]> {
+//         const whereClause: any = {
+//         OR: [
+//             { receiverId: userId },
+//             { senderId: userId }
+//         ]
+//         };
+//         if (status) whereClause.status = status;
 
-//     constructor(
-//     private readonly prisma: PrismaService,
-//     private readonly logger: AppLogger,
-//     ){}
-
-
-//         /**
-//      * Create multiple notifications at once (for all organizations, for example).
-//      */
-//     async createMany<T>(payloads: NotificationPayload<T>[]) {
-//         if (!payloads.length) return;
-
-//         await this.prisma.notification.createMany({
-//         data: payloads.map((p) => ({
-//             userId: p.userId,
-//             title: p.title,
-//             message: p.message,
-//             type: p.type,
-//             metadata: p.metadata,
-//         })),
-//         });
-
-//         this.logger.log(`✅ Created ${payloads.length} notifications`);
-//     }
-
-//     /**
-//     * Create a single notification record in the database.
-//     */
-//     async create<T>(payload: NotificationPayload<T>) {
-//         const { userId, title, message, type, metadata } = payload;
-
-//         return this.prisma.notification.create({
-//         data: {
-//             userId,
-//             title,
-//             message,
-//             type,
-//             metadata,
+//         const notifications = await this.prisma.notification.findMany({
+//         where: whereClause,
+//         include: {
+//             sender: { include: { requesterReporterProfile: true } },
+//             assignment: true
 //         },
+//         orderBy: { createdAt: 'desc' }
 //         });
-//     }
-// }
 
+//         return notifications.map(n => this.buildPayload(n, userId));
+//     }
+
+//     // Handle CTA actions
+//     async handleAction(notificationId: string, userId: string, dto: NotificationActionDto) {
+//         const notification = await this.prisma.notification.findUnique({
+//         where: { id: notificationId },
+//         include: { sender: true, receiver: true, assignment: true }
+//         });
+
+//         if (!notification) throw new NotFoundException('Notification not found');
+
+//         const isOrg = notification.receiverId === userId;
+//         const isReporter = notification.senderId === userId;
+
+//         if (!isOrg && !isReporter) throw new ForbiddenException('Not allowed to act on this notification');
+
+//         // Determine new status & mirrored logic
+//         const { newStatus, mirroredAction } = this.getStatusTransition(notification.status, dto.action, isOrg);
+
+//         // Update notification
+//         const updatedNotification = await this.prisma.notification.update({
+//         where: { id: notificationId },
+//         data: { status: newStatus }
+//         });
+
+//         // If mirrored action needed, update corresponding notification for other side
+//         if (mirroredAction) {
+//         await this.prisma.notification.updateMany({
+//             where: { relatedId: notification.relatedId, receiverId: isOrg ? notification.senderId : notification.receiverId },
+//             data: { status: newStatus }
+//         });
+//         }
+
+//         return this.buildPayload(updatedNotification, userId);
+//     }
+
+//     // Map status transitions based on action + role
+//     private getStatusTransition(currentStatus: string, action: string, isOrg: boolean) {
+//         let newStatus = currentStatus;
+//         let mirroredAction = false;
+
+//         switch (currentStatus) {
+//         case 'pending':
+//             if (isOrg) {
+//             if (action === 'contact') { newStatus = 'in_discussion'; mirroredAction = true; }
+//             else if (action === 'cancel') newStatus = 'closed';
+//             } else {
+//             if (action === 'respond') { newStatus = 'in_discussion'; mirroredAction = true; }
+//             }
+//             break;
+//         case 'in_discussion':
+//             if (action === 'end') newStatus = 'closed';
+//             break;
+//         case 'closed':
+//             if (action === 'remove') newStatus = 'closed';
+//             break;
+//         }
+
+//         return { newStatus, mirroredAction };
+//     }
+
+//     // Build frontend-ready payload
+//     private buildPayload(notification: any, currentUserId: string): NotificationResponseDto {
+//         const isOrg = notification.receiverId === currentUserId;
+//         let primary = '';
+//         let secondary: string | undefined = undefined;
+
+//         switch (notification.status) {
+//         case 'pending':
+//             if (isOrg) { primary = 'Contact Reporter'; secondary = 'Cancel'; }
+//             else { primary = 'Respond'; secondary = 'Cancel'; }
+//             break;
+//         case 'in_discussion':
+//             primary = 'Resume';
+//             secondary = 'End';
+//             break;
+//         case 'closed':
+//             primary = 'Remove';
+//             break;
+//         }
+
+//         return {
+//         id: notification.id,
+//         type: notification.type,
+//         status: notification.status,
+//         createdAt: notification.createdAt,
+//         updatedAt: notification.updatedAt,
+//         report: {
+//             id: notification.relatedId,
+//             title: notification.type === 'CASE_REPORT' ? 'Case Report' : 'Service Request',
+//             description: notification.message || '',
+//             caseType: notification.type === 'CASE_REPORT' ? 'Abuse' : undefined,
+//             serviceType: notification.type === 'SERVICE_REQUEST' ? 'Counselling' : undefined,
+//             reporter: {
+//             id: notification.sender.id,
+//             fullName: notification.sender.requesterReporterProfile?.fullName || 'Unknown',
+//             profilePicture: notification.sender.requesterReporterProfile?.profilePicture
+//             }
+//         },
+//         ctas: { primary, secondary }
+//         };
+//     }
+
+// }
+  
 
 
 
