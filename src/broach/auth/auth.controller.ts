@@ -68,9 +68,10 @@ export class AuthController {
       FileInterceptor('profilePicture', {
         limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
         fileFilter: (req, file, cb) => {
-          if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+          const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+          if (!allowedMimeTypes.includes(file.mimetype)) {
             return cb(
-              new BadRequestException('Only JPG/PNG images are allowed'),
+              new BadRequestException('Only JPG and PNG images are allowed'),
               false,
             );
           }

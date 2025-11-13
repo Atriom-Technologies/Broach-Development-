@@ -53,11 +53,12 @@ export class OrganizationProfileController {
     FileInterceptor('organizationLogoUrl', {
       limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
       fileFilter: (req, file, cb) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-          return cb(
-            new BadRequestException('Only JPG/PNG images are allowed'),
-            false,
-          );
+          const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+          if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(
+              new BadRequestException('Only JPG and PNG images are allowed'),
+              false,
+            );
         }
         cb(null, true);
       },
@@ -84,11 +85,12 @@ export class OrganizationProfileController {
     FileInterceptor('coverPhotoUrl', {
       limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit
       fileFilter: (req, file, cb) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-          return cb(
-            new BadRequestException('Only JPG/PNG images are allowed'),
-            false,
-          );
+          const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+          if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(
+              new BadRequestException('Only JPG and PNG images are allowed'),
+              false,
+            );
         }
         cb(null, true);
       },
