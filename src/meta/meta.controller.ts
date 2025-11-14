@@ -1,12 +1,10 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { MetaService } from './meta.service';
-import { JwtAuthGuard } from 'src/broach/auth/guards/jwt-auth.guard';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 
 @ApiTags('Meta')
 @Controller('meta')
-@UseGuards(JwtAuthGuard)
 export class MetaController {
   constructor(private readonly metaService: MetaService) {}
 
