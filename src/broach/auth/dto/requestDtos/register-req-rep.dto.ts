@@ -80,6 +80,10 @@ export class RequesterCompleteProfileDto {
     description: 'Gender of the user',
     example: 'male',
   })
+
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @IsEnum(Gender)
   gender: Gender;
 
