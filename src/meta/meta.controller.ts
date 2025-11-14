@@ -50,12 +50,12 @@ export class MetaController {
     }
 
     // Check if requested type exists in enums
-    if (enums[type]) return { [type]: enums[type] };
+    if (enums[type]) return enums[type];
 
     // Check if requested type exists in lookup tables
-    if (lookups[type]) return { [type]: lookups[type] };
+    if (lookups[type]) return lookups[type];
 
     // If type is not recognized, return empty
-    return { [type]: [] };
+    return [];
   }
 }
