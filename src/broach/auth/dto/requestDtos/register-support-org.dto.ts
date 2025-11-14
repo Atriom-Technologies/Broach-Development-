@@ -132,9 +132,12 @@ export class CompleteSupportOrgProfileDto {
     example: ['b2f0a4a3-8b10-4d3b-98f1-5df28a3e7e3c'],
     isArray: true,
   })
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return [];
+    return Array.isArray(value) ? value : [value];
+  })
   @IsUUID('all', { each: true })
   @IsOptional()
-  @Type(() => String)
   sectorId: string[];
 
 
