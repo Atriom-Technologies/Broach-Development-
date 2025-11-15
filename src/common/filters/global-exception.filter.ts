@@ -42,7 +42,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // Log full details for YOU (not the frontend)
-    this.logger.error({
+    this.logger.error(JSON.stringify({
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
@@ -52,7 +52,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       body: request.body,
       params: request.params,
       query: request.query,
-    });
+    }));
 
     // Clean response to frontend
     response.status(status).json({
