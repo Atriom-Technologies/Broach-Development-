@@ -474,9 +474,9 @@ model Notification {
   updatedAt    DateTime           @updatedAt
   readAt       DateTime?
 
-  sender     User        @relation("SentNotifications", fields: [senderId], references: [id])
-  receiver   User        @relation("ReceivedNotifications", fields: [receiverId], references: [id])
-  assignment Assignment? @relation(fields: [assignmentId], references: [id])
+  sender     User        @relation("SentNotifications", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User        @relation("ReceivedNotifications", fields: [receiverId], references: [id], onDelete: Cascade)
+  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
   @@index([type])
   @@index([senderId])

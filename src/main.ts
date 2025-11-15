@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import * as compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { AppLogger } from './logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,6 +33,9 @@ async function bootstrap() {
    * windowsMs: 15 * 60 * 1000, 15mins
    * max: 100, limits each IP with maximum of 100 requests per window}))
    */
+
+  app.useGlobalFilters(new GlobalExceptionFilter(app.get(AppLogger)));
+
 
   // Global validation pipe
   app.useGlobalPipes(

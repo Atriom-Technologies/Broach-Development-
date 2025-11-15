@@ -33,33 +33,33 @@ export class AppLogger implements LoggerService {
   });
 
   // Log methods
-  log(message: string) {
+  log(message: any) {
     this.logger.info(message);
   }
 
   // Error log method
-  error(message: string, trace?: string) {
+  error(message: any, trace?: string) {
     this.logger.error(message, { stack: trace });
   }
 
   // Warn log method
-  warn(message: string) {
+  warn(message: any) {
     this.logger.warn(message);
   }
 
   // Debug log method
-  debug(message: string) {
+  debug(message: any) {
     this.logger.debug(message);
   }
 
   // Verbose log method
-  verbose(message: string) {
+  verbose(message: any) {
     this.logger.verbose(message);
   }
 
   // Custom log method
-  custom(message: string, level: string) {
-    if (this.logger.levels[level]) {
+  custom(message: any, level: string) {
+    if (this.logger.isLevelEnabled(level)) {
       this.logger.log(level, message);
     } else {
       this.logger.info(message); // Fallback to info if level is invalid
