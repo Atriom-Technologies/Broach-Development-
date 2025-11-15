@@ -465,8 +465,8 @@ model Notification {
   id           String             @id // uses cuid() V2 to improve performance. search about it to know more
   type         EngagementType
   relatedId    String // Case/report ID or serviceRequest Id
-  senderId     String // reporter or requester of case
-  receiverId   String // Organization Id
+  senderId     String? // reporter or requester of case
+  receiverId   String? // Organization Id
   assignmentId String?
   message      String?            @db.Text
   status       NotificationStatus @default(pending)
@@ -474,8 +474,8 @@ model Notification {
   updatedAt    DateTime           @updatedAt
   readAt       DateTime?
 
-  sender     User        @relation("SentNotifications", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver   User        @relation("ReceivedNotifications", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User?       @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+  receiver   User?       @relation("ReceivedNotifications", fields: [receiverId], references: [id], onDelete: SetNull)
   assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
   @@index([type])
@@ -503,14 +503,14 @@ model Assignment {
   id             String             @id @default(uuid())
   type           EngagementType
   relatedId      String
-  organizationId String
-  reporterId     String
+  organizationId String?
+  reporterId     String?
   status         NotificationStatus @default(in_discussion)
   assignedAt     DateTime           @default(now())
   closedAt       DateTime?
 
-  organization User           @relation("AssignedOrganization", fields: [organizationId], references: [id], onDelete: Cascade)
-  reporter     User           @relation("AssignedRequesterReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  organization User?          @relation("AssignedOrganization", fields: [organizationId], references: [id], onDelete: SetNull)
+  reporter     User?          @relation("AssignedRequesterReporter", fields: [reporterId], references: [id], onDelete: SetNull)
   notification Notification[] // back-link for traceability
 
   @@index([relatedId, type])
