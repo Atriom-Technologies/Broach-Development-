@@ -34,7 +34,20 @@ async function bootstrap() {
    * max: 100, limits each IP with maximum of 100 requests per window}))
    */
 
-  app.useGlobalFilters(new GlobalExceptionFilter(app.get(AppLogger)));
+
+  // @Controller()
+  // export class AppController {
+  //   @Get()
+  //   getRoot() {
+  //     return { status: 'ok' };
+  //   }
+
+  //   @Head()
+  //   headRoot() {
+  //     return; // Empty 200 OK
+  //   }
+  // }
+  // app.useGlobalFilters(new GlobalExceptionFilter(app.get(AppLogger)));
 
 
   // Global validation pipe
