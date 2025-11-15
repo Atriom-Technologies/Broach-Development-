@@ -25,8 +25,8 @@ export class SessionService {
   async createSession(
     userId: string,
     refreshTokenRaw: string,
-    ip: string,
-    userAgent: string,
+    ip?: string,
+    userAgent?: string,
   ): Promise<RefreshSession> {
     const hashedRefreshToken = await argon2.hash(refreshTokenRaw);
     const refreshTokenTtl = getEnvOrThrow<number>(

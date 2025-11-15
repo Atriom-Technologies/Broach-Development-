@@ -102,11 +102,37 @@ export class AuthService {
       'Failed to create User and Profile during registration',
     );
 
+    // Create refresh token
+    const refreshTokenRaw = this.safeExecutor.runSync(
+      () => this.tokenService.signRefreshToken(),
+      'Failed to sign refresh token during login',
+    );
+
+                // Store session
+    const session = await this.safeExecutor.run(
+      () =>
+        this.sessionService.createSession(
+          user.id,
+          refreshTokenRaw,
+        ),
+      'Failed to create session during login',
+    );
+
+    // Create access token
+    const payLoad = {
+      sub: user.id,
+      email: user.email,
+      userType: user.userType,
+      sessionId: session.id
+    };
+    const accessToken = await this.safeExecutor.run(
+      () => this.tokenService.signAccessToken(payLoad),
+      'Failed to sign access token during login',
+    );
     return {
-        id: user.id,
-        email: user.email,
-        phone: user.phone,
-        userType: user.userType,
+      id: user.id,
+      userType: user.userType,
+      accessToken
     }
   }
 
