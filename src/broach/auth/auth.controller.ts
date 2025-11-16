@@ -89,13 +89,14 @@ export class AuthController {
     ) {
       const userType =  UserType.requester_reporter
 
-      await this.authService.completeRequesterProfile(
+      const result = await this.authService.completeRequesterProfile(
         dto,
         userType,
         file,
       );
       return {
-        message: `Profile updated successfully.`
+        name: result.name,
+        imageUrl: result.imageUrl
       }
     }
 
@@ -109,6 +110,8 @@ export class AuthController {
 
       return {
         "message": "Registration Successful",
+        authToken: result.accessToken,
+        UserType: result.userType,
         userId: result.id,  // Match Kotlin exactly
       };
   }
@@ -138,13 +141,14 @@ export class AuthController {
     ) {
       const userType =  UserType.support_organization
 
-      await this.authService.completeSupportOrgProfile(
+      const result = await this.authService.completeSupportOrgProfile(
         dto,
         userType,
         file,
       );
       return {
-        message: `Profile updated successfully.`
+        name: result.name,
+        imageUrl: result.imageUrl 
       }
     }
 
@@ -158,7 +162,7 @@ export class AuthController {
   ) {
     const result = await this.authService.login(dto, ipAddress, userAgent);
     return {
-      message: "Login successful",
+      message: "You are Logged In",
       authToken: result.accessToken,
       userType: result.userType,
       isDetailsSubmitted: result.isProfileDetailsSubmitted,

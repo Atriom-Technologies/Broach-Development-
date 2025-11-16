@@ -50,7 +50,7 @@ export class AuthService {
     // Check if password matches
     if (password !== confirmPassword) {
       this.logger.warn(
-        `Registration failed: Password mismatch for email: ${dto.email}`,
+        `Password mismatch for email: ${dto.email}`,
       );
       throw new BadRequestException('Passwords do not match');
     }
@@ -72,7 +72,7 @@ export class AuthService {
       this.logger.warn(
         `Registration failed: User already exists with email: ${email} or phone: ${phone}`,
       );
-      throw new ConflictException('User with this credentials already exist');
+      throw new ConflictException('User already exist');
     }
 
     // Use safeExecutor injectable function to hash password securely
@@ -236,7 +236,7 @@ async completeRequesterProfile(
 
 
     //Update the requester profile data
-    await this.safeExecutor.run(
+    const profile = await this.safeExecutor.run(
       () =>
         this.prisma.requesterReporterProfile.update({
           where: { userId: user.id },
@@ -246,6 +246,11 @@ async completeRequesterProfile(
     );
 
         this.logger.debug(`Profile completed for user: ${user.id}`);
+
+    return {
+      name: profile.fullName,
+      imageUrl: profile.profilePicture
+    }
 
   }
 
@@ -283,7 +288,7 @@ async completeRequesterProfile(
       this.logger.warn(
         `Registration failed: User already exists with email: ${email} or phone: ${phone}`,
       );
-      throw new ConflictException('User with this credentials already exist');
+      throw new ConflictException('User already exist');
     }
 
     // Hash password securely
@@ -326,12 +331,41 @@ async completeRequesterProfile(
         }),
       'Failed to create User and Support Organization Profile during registration',
     );
-    return {
-        id: user.id,
-        email: user.email,
-        phone: user.phone,
-        userType: user.userType,
+
+
+    // Create refresh token
+    const refreshTokenRaw = this.safeExecutor.runSync(
+      () => this.tokenService.signRefreshToken(),
+      'Failed to sign refresh token during login',
+    );
+
+                // Store session
+    const session = await this.safeExecutor.run(
+      () =>
+        this.sessionService.createSession(
+          user.id,
+          refreshTokenRaw,
+        ),
+      'Failed to create session during login',
+    );
+
+    // Create access token
+    const payLoad = {
+      sub: user.id,
+      email: user.email,
+      userType: user.userType,
+      sessionId: session.id
     };
+    const accessToken = await this.safeExecutor.run(
+      () => this.tokenService.signAccessToken(payLoad),
+      'Failed to sign access token during login',
+    );
+    return {
+      id: user.id,
+      userType: user.userType,
+      accessToken
+    }
+
   }
 
 
@@ -441,7 +475,7 @@ async completeSupportOrgProfile(
     this.logger.debug(`Profile completed for user: ${user.id}`);
 
     //Update the requester profile data
-    await this.safeExecutor.run(
+    const profile = await this.safeExecutor.run(
       () =>
         this.prisma.supportOrgProfile.update({
           where: { userId: user.id },
@@ -452,6 +486,11 @@ async completeSupportOrgProfile(
         }),
       `Failed to update profile for user: ${user.id}`,
     );
+
+    return {
+      name: profile.organizationName,
+      imageUrl: profile.organizationLogoUrl
+    }
   }
 
 
@@ -476,7 +515,7 @@ async completeSupportOrgProfile(
     // If user not found, throw error
     if (!user) {
       this.logger.warn(`Login failed: User not found for email: ${email}`);
-      throw new UnauthorizedException('Invalid credentials. Please register');
+      throw new UnauthorizedException('Please register');
     }
 
     // Verify password
