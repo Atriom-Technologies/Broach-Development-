@@ -111,7 +111,7 @@ export class AuthController {
       return {
         "message": "Registration Successful",
         authToken: result.accessToken,
-        UserType: result.userType,
+        userType: result.userType,
         userId: result.id,  // Match Kotlin exactly
       };
   }
