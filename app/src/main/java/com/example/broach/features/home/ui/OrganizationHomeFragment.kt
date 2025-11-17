@@ -1,5 +1,6 @@
 package com.example.broach.features.home.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.broach.R
 import com.example.broach.databinding.FragmentOrganizationHomeBinding
 import com.example.broach.features.home.ui.data.OrganizationHistoryAdapter
-import com.example.broach.features.home.ui.data.OrganizationHistoryItem
+import com.example.broach.features.profile.ui.OrganizationProfileActivity
 
 class OrganizationHomeFragment : Fragment() {
 
@@ -34,46 +35,39 @@ class OrganizationHomeFragment : Fragment() {
         setupReceivedCasesRecyclerView()
         setupServiceHistoryRecyclerView()
 
-        // Handle button clicks
-        binding.btnViewAllCases.setOnClickListener {
-            // TODO: Navigate to the full list of received cases
-        }
-
-        binding.btnViewAllServices.setOnClickListener {
-            // TODO: Navigate to the full list of offered services
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_profile -> {
+                    val intent = Intent(activity, OrganizationProfileActivity::class.java).apply {
+                        putExtra("USER_NAME", name)
+                        putExtra("USER_IMAGE_URL", imageUrl)
+                    }
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
         }
 
         // Populate header details
         binding.tvGreeting.text = "Hi, $name!"
         Glide.with(this)
             .load(imageUrl)
-            .placeholder(R.drawable.ic_profile_placeholder) // Add a placeholder
-            .into(binding.ivUserProfile)
+            .placeholder(R.drawable.ic_person2)
+            .circleCrop()
+            .into(binding.ivProfile)
     }
 
     private fun setupReceivedCasesRecyclerView() {
-        val dummyCaseData = listOf(
-            OrganizationHistoryItem("16-06-2024", "18:45", "Franklin Udeh", "Gender Based Violence", true),
-            OrganizationHistoryItem("15-06-2024", "10:30", "Jane Doe", "Mental Health Support", true)
-        )
-
-        val adapter = OrganizationHistoryAdapter(dummyCaseData)
+        // Dummy data for now
+        val adapter = OrganizationHistoryAdapter(emptyList())
         binding.rvCasesHistory.layoutManager = LinearLayoutManager(context)
         binding.rvCasesHistory.adapter = adapter
     }
 
     private fun setupServiceHistoryRecyclerView() {
-        val dummyServiceData = listOf(
-            OrganizationHistoryItem(
-                "22-11-2024",
-                "08:07",
-                "Blue Flower Support Services",
-                "Welfare services",
-                false
-            ),
-        )
-
-        val adapter = OrganizationHistoryAdapter(dummyServiceData)
+        // Dummy data for now
+        val adapter = OrganizationHistoryAdapter(emptyList())
         binding.rvServicesHistory.layoutManager = LinearLayoutManager(context)
         binding.rvServicesHistory.adapter = adapter
     }

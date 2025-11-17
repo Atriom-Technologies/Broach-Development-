@@ -7,7 +7,7 @@
     android:background="@color/white"
     tools:context=".features.home.ui.OrganizationHomeFragment">
 
-    <!-- Header -->
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_layout"
         android:layout_width="0dp"
@@ -27,51 +27,30 @@
                 android:id="@+id/iv_logo"
                 android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:layout_gravity="start"
+                android:layout_gravity="start|center_vertical"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/logo_dsc"
                 android:src="@drawable/logo_1" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/header_bar"
+            <ImageView
+                android:id="@+id/iv_profile"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="16dp"
+                android:padding="5dp"
+                android:contentDescription="@string/person"
+                android:src="@drawable/ic_person2"/>
+
+            <TextView
+                android:id="@+id/tv_greeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_gravity="end|center_vertical"
                 android:layout_marginEnd="5dp"
-                android:background="@color/light_gray"
-                android:paddingHorizontal="16dp"
-                android:layout_gravity="end"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toEndOf="@id/iv_logo"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <TextView
-                    android:id="@+id/tv_greeting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/foundation_name"
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:layout_marginEnd="10dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/iv_profile"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
-
-                <ImageView
-                    android:id="@+id/iv_profile"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="5dp"
-                    android:padding="5dp"
-                    android:contentDescription="@string/person"
-                    android:src="@drawable/ic_person"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                android:text="@string/hi_name"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
 
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
@@ -109,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:text="@string/see_more1"
+                    android.text="@string/see_more1"
                     android:textColor="@color/primary_color2"
                     android:layout_alignParentEnd="true"/>
             </RelativeLayout>
@@ -140,7 +119,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/earn2"
+                            android:text="@string/earn"
                             android:textColor="@color/black"/>
                         <TextView
                             android:layout_width="wrap_content"
@@ -153,7 +132,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Received Cases History -->
+            <!-- Received Cases -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -161,13 +140,12 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/received_cases_history"
+                    android:text="@string/received_cases"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:textColor="@color/black"
                     android:layout_alignParentStart="true"/>
                 <TextView
-                    android:id="@+id/btn_view_allCases"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/view_all"
@@ -180,10 +158,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:visibility="gone"
                 tools:listitem="@layout/item_case_history_organization"
                 tools:itemCount="1"/>
 
-            <!-- Services History -->
+            <!-- Offered Services -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -191,13 +170,12 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/services_history"
+                    android:text="@string/offered_services"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:textColor="@color/black"
                     android:layout_alignParentStart="true"/>
                 <TextView
-                    android:id="@+id/btn_view_allServices"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/view_all"
@@ -210,6 +188,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:visibility="gone"
                 tools:listitem="@layout/item_service_history_organization"
                 tools:itemCount="1"/>
 
@@ -223,8 +202,8 @@
         android:layout_height="wrap_content"
         android:background="@color/bottom_nav_item_color"
         app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/primary_color2"
-        app:itemTextColor="@color/primary_color2"
+        app:itemIconTint="@color/bottom_nav_icon_color_selector"
+        app:itemTextColor="@color/bottom_nav_icon_color_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

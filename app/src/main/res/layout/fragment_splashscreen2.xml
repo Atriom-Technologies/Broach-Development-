@@ -45,12 +45,12 @@
 
     <TextView
         android:id="@+id/textView1"
-        android:layout_width="296dp"
-        android:layout_height="44dp"
+        android:layout_width="304dp"
+        android:layout_height="66dp"
         android:text="@string/problems_can_be"
+        android:textAlignment="center"
         android:textColor="@color/primary_color1"
         android:textSize="25sp"
-        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />

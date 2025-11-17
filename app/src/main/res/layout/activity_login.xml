@@ -49,7 +49,7 @@
             android:layout_marginTop="150dp"
             android:text="@string/login"
             android:textColor="@color/primary_color3"
-            android:textSize="32sp"
+            android:textSize="25sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/til_email"
             app:layout_constraintEnd_toEndOf="parent"
@@ -104,9 +104,9 @@
             android:id="@+id/tv_forgot_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_margin="8dp"
             android:text="@string/forgot_password"
-            android:textColor="?attr/colorSecondary"
+            android:textColor="@color/primary_color1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/til_password" />
 
@@ -118,6 +118,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginEnd="20dp"
             android:text="@string/action_sign_in"
+            android:backgroundTint="@color/primary_color2"
             app:layout_constraintBottom_toTopOf="@id/llSignIn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -137,7 +138,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/DH_account" />
+                android:text="@string/DH_account"
+                android:textColor="@color/primary_color1"
+                />
 
             <TextView
                 android:id="@+id/tv_sign_up"
@@ -145,7 +148,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="@string/sign_up"
-                android:textColor="?attr/colorSecondary"
+                android:textColor="@color/primary_color2"
                 android:textStyle="bold" />
         </LinearLayout>
 

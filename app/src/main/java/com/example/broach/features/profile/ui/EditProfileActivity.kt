@@ -2,6 +2,7 @@ package com.example.broach.features.profile.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -19,6 +20,10 @@ import com.example.broach.network.RetrofitClient
 import com.example.broach.network.UpdateProfileRequest
 import com.example.broach.network.UserProfile
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.InputStream
 
 class EditProfileActivity : AppCompatActivity() {
 
@@ -32,8 +37,11 @@ class EditProfileActivity : AppCompatActivity() {
         result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val imageUri = result.data?.data
-            binding.ivProfileImage.setImageURI(imageUri)
-            // TODO: Handle image upload to your server
+            if (imageUri != null) {
+                binding.ivProfileImage.setImageURI(imageUri)
+                val imagePart = uriToMultipart(imageUri)
+                viewModel.uploadReporterProfilePicture(imagePart)
+            }
         }
     }
 
@@ -50,22 +58,34 @@ class EditProfileActivity : AppCompatActivity() {
         }
 
         observeUiState()
-        viewModel.getProfile()
+        viewModel.getReporterProfile()
+    }
+
+    private fun uriToMultipart(uri: Uri): MultipartBody.Part {
+        val inputStream: InputStream? = contentResolver.openInputStream(uri)
+        val requestBody = inputStream!!.readBytes().toRequestBody("image/*".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData("image", "photo.jpg", requestBody)
     }
 
     private fun observeUiState() {
+        var initialLoad = true
         lifecycleScope.launch {
             viewModel.uiState.collect { state ->
                 when (state) {
                     is ProfileUiState.Loading -> {
                         // Show loading indicator
                     }
-                    is ProfileUiState.Success -> {
-                        state.userProfile?.let { populateUi(it) }
+                    is ProfileUiState.ReporterProfileLoaded -> {
+                        populateUi(state.userProfile)
+                        if (!initialLoad) {
+                            Toast.makeText(this@EditProfileActivity, "Profile Updated!", Toast.LENGTH_SHORT).show()
+                        }
+                        initialLoad = false
                     }
                     is ProfileUiState.Error -> {
                         Toast.makeText(this@EditProfileActivity, state.message, Toast.LENGTH_SHORT).show()
                     }
+                    else -> { /* Ignore other states like OrganizationProfileLoaded */ }
                 }
             }
         }
@@ -103,7 +123,7 @@ class EditProfileActivity : AppCompatActivity() {
                     occupation = binding.etOccupation.text.toString(),
                     location = binding.etLocation.text.toString()
                 )
-                viewModel.updateProfile(updateRequest)
+                viewModel.updateReporterProfile(updateRequest)
                 true
             }
             else -> super.onOptionsItemSelected(item)

@@ -15,7 +15,8 @@ class LogoutActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        // The title is now set in the XML layout, so we don't need to set it here.
+        // The fragments will control the visibility of the back arrow.
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()

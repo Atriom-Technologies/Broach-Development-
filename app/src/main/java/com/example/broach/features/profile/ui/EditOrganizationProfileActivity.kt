@@ -2,6 +2,7 @@ package com.example.broach.features.profile.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -16,10 +17,14 @@ import com.example.broach.R
 import com.example.broach.databinding.ActivityEditOrganizationProfileBinding
 import com.example.broach.features.profile.data.ProfileRepository
 import com.example.broach.network.ApiService
+import com.example.broach.network.OrganizationProfile
 import com.example.broach.network.RetrofitClient
-import com.example.broach.network.UpdateProfileRequest
-import com.example.broach.network.UserProfile
+import com.example.broach.network.UpdateOrganizationProfileRequest
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.InputStream
 
 class EditOrganizationProfileActivity : AppCompatActivity() {
 
@@ -33,8 +38,11 @@ class EditOrganizationProfileActivity : AppCompatActivity() {
         result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val imageUri = result.data?.data
-            binding.ivProfileImage.setImageURI(imageUri)
-            // TODO: Handle image upload to your server
+            if (imageUri != null) {
+                binding.ivProfileImage.setImageURI(imageUri)
+                val imagePart = uriToMultipart(imageUri)
+                viewModel.uploadOrganizationLogo(imagePart)
+            }
         }
     }
 
@@ -52,7 +60,13 @@ class EditOrganizationProfileActivity : AppCompatActivity() {
 
         setupSectorDropdown()
         observeUiState()
-        viewModel.getProfile()
+        viewModel.getOrganizationProfile()
+    }
+
+    private fun uriToMultipart(uri: Uri): MultipartBody.Part {
+        val inputStream: InputStream? = contentResolver.openInputStream(uri)
+        val requestBody = inputStream!!.readBytes().toRequestBody("image/*".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData("image", "logo.jpg", requestBody)
     }
 
     private fun setupSectorDropdown() {
@@ -62,32 +76,38 @@ class EditOrganizationProfileActivity : AppCompatActivity() {
     }
 
     private fun observeUiState() {
+        var initialLoad = true
         lifecycleScope.launch {
             viewModel.uiState.collect { state ->
                 when (state) {
                     is ProfileUiState.Loading -> {
                         // Show loading indicator
                     }
-                    is ProfileUiState.Success -> {
-                        state.userProfile?.let { populateUi(it) }
+                    is ProfileUiState.OrganizationProfileLoaded -> {
+                        populateUi(state.organizationProfile)
+                        if (!initialLoad) {
+                            Toast.makeText(this@EditOrganizationProfileActivity, "Profile Updated!", Toast.LENGTH_SHORT).show()
+                        }
+                        initialLoad = false
                     }
                     is ProfileUiState.Error -> {
                         Toast.makeText(this@EditOrganizationProfileActivity, state.message, Toast.LENGTH_SHORT).show()
                     }
+                    else -> { /* Ignore other states like ReporterProfileLoaded */ }
                 }
             }
         }
     }
 
-    private fun populateUi(userProfile: UserProfile) {
-        binding.tvOrganizationNameHeader.text = userProfile.fullName
-        binding.etOrganizationName.setText(userProfile.fullName)
-        binding.etEmail.setText(userProfile.email)
-        binding.etPhone.setText(userProfile.phone)
-        binding.etDateFounded.setText(userProfile.dob)
-        binding.actvSector.setText(userProfile.occupation, false) // Set spinner selection
-        binding.etAddress.setText(userProfile.location)
-        Glide.with(this).load(userProfile.profilePictureUrl).into(binding.ivProfileImage)
+    private fun populateUi(orgProfile: OrganizationProfile) {
+        binding.tvOrganizationNameHeader.text = orgProfile.organizationName
+        binding.etOrganizationName.setText(orgProfile.organizationName)
+        binding.etEmail.setText(orgProfile.email)
+        binding.etPhone.setText(orgProfile.phone)
+        binding.etDateFounded.setText(orgProfile.dateFounded)
+        binding.actvSector.setText(orgProfile.category, false)
+        binding.etAddress.setText(orgProfile.address)
+        Glide.with(this).load(orgProfile.profilePictureUrl).into(binding.ivProfileImage)
     }
 
     private fun openGallery() {
@@ -104,14 +124,14 @@ class EditOrganizationProfileActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_save -> {
-                val updateRequest = UpdateProfileRequest(
-                    fullName = binding.etOrganizationName.text.toString(),
+                val updateRequest = UpdateOrganizationProfileRequest(
+                    organizationName = binding.etOrganizationName.text.toString(),
                     phone = binding.etPhone.text.toString(),
-                    dob = binding.etDateFounded.text.toString(),
-                    occupation = binding.actvSector.text.toString(),
-                    location = binding.etAddress.text.toString()
+                    dateFounded = binding.etDateFounded.text.toString(),
+                    category = binding.actvSector.text.toString(),
+                    address = binding.etAddress.text.toString()
                 )
-                viewModel.updateProfile(updateRequest)
+                viewModel.updateOrganizationProfile(updateRequest)
                 true
             }
             else -> super.onOptionsItemSelected(item)

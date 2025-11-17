@@ -6,7 +6,9 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
+import com.example.broach.R
 import com.example.broach.databinding.ActivityProfileBinding
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -42,6 +44,10 @@ class ProfileActivity : AppCompatActivity(), CoverPhotoOptionsFragment.CoverPhot
         binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Get data from intent
+        val name = intent.getStringExtra("USER_NAME")
+        val imageUrl = intent.getStringExtra("USER_IMAGE_URL")
+
         // Set up the ViewPager and TabLayout
         val viewPager = binding.viewPagerHistory
         val tabLayout = binding.tabLayout
@@ -56,6 +62,14 @@ class ProfileActivity : AppCompatActivity(), CoverPhotoOptionsFragment.CoverPhot
                 else -> null
             }
         }.attach()
+
+        // Populate profile details
+        binding.tvUserName.text = name
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_person)
+            .circleCrop()
+            .into(binding.ivProfilePic)
 
         // Initialize stats to 0
         binding.tvReportsCount.text = "0"

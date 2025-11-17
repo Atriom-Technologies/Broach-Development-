@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    private const val BASE_URL = "https://broach-development-profile.onrender.com/api/"
+    private const val BASE_URL = "https://broach-notification.onrender.com"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()

@@ -1,30 +1,25 @@
 package com.example.broach.network
 
+import com.google.gson.annotations.SerializedName
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.Part
 
-// Data class for the signup request body
+// --- Data Classes ---
+
+// REQUEST/RESPONSE FOR SIGNUP
 data class SignupRequest(
     val fullName: String,
     val email: String,
     val phone: String,
     val password: String,
-    val confirmPassword: String
-)
-
-// Data class for the signup response
-data class SignupResponse(
-    val message: String,
-    val userId: String
-)
-
-// Data class for the login request body
-data class LoginRequest(
-    val email: String,
-    val password: String
+    val confirmPassword: String,
 )
 
 data class OrganizationSignupRequest(
@@ -32,20 +27,62 @@ data class OrganizationSignupRequest(
     val email: String,
     val phone: String,
     val password: String,
-    val confirmPassword: String
+    val confirmPassword: String,
 )
 
-// Data class for the login response.
-data class LoginResponse(
+data class SignupResponse(
     val message: String,
-    val authToken: String,
-    val userType: String,
-    val isDetailsSubmitted: Boolean,
+    val authToken: String?,
+    val userType: String?,
+    val userId: String
+)
+
+// REQUEST/RESPONSE FOR LOGIN
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val message: String?,
+    val authToken: String?,
+    val userId: String?,
+    val userType: String?,
+    val isDetailsSubmitted: Boolean?,
     val name: String?,
     val imageUrl: String?
 )
 
-// Data class for user profile
+// RESPONSE FOR DETAILS SUBMISSION
+data class DetailsResponse(
+    val name: String?,
+    val imageUrl: String?
+)
+
+// DATA CLASS FOR SECTORS
+data class Sector(
+    val id: String,
+    val name: String
+)
+
+// REQUESTS FOR PROFILE UPDATES (FOR PROFILE EDITING PAGES)
+data class UpdateProfileRequest(
+    val fullName: String? = null,
+    val phone: String? = null,
+    val dob: String? = null,
+    val occupation: String? = null,
+    val location: String? = null
+)
+
+data class UpdateOrganizationProfileRequest(
+    val organizationName: String? = null,
+    val phone: String? = null,
+    val dateFounded: String? = null,
+    val category: String? = null,
+    val address: String? = null
+)
+
+// MODELS FOR PROFILE GETTERS
 data class UserProfile(
     val fullName: String,
     val email: String,
@@ -53,56 +90,98 @@ data class UserProfile(
     val dob: String,
     val occupation: String,
     val location: String,
-    val profilePictureUrl: String
+    val profilePictureUrl: String,
+    val coverPhotoUrl: String?
 )
 
-// Data class for updating user profile
-data class UpdateProfileRequest(
-    val fullName: String,
+data class OrganizationProfile(
+    val organizationName: String,
+    val email: String,
     val phone: String,
-    val dob: String,
-    val occupation: String,
-    val location: String
+    val dateFounded: String,
+    val category: String,
+    val address: String,
+    val profilePictureUrl: String,
+    val coverPhotoUrl: String?
 )
+
+// Data classes for Password Reset
+data class ForgotPasswordRequest(val email: String)
+data class ForgotPasswordResponse(val message: String)
+data class ResetPasswordRequest(val newPassword: String, val confirmPassword: String, val token: String)
+data class ResetPasswordResponse(val message: String)
+
 
 interface ApiService {
-    @POST("auth/register")
-    suspend fun signupReporter(@Body request: SignupRequest): Response<SignupResponse>
 
-    @POST("auth/register/organization")
-    suspend fun signupOrganization(@Body request: OrganizationSignupRequest): Response<SignupResponse>
-
-    @POST("auth/login")
+    // --- Main User Actions ---
+    @POST("/api/user/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @POST("auth/forgot-password")
+    @POST("/api/user/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<ForgotPasswordResponse>
 
-    @POST("auth/reset-password")
+    @POST("/api/user/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ResetPasswordResponse>
 
-    @GET("user/profile")
-    suspend fun getProfile(): Response<UserProfile>
+    // --- Reporter/Requester Endpoints ---
+    @POST("/api/user/register")
+    suspend fun signupReporter(@Body request: SignupRequest): Response<SignupResponse>
 
-    @PUT("user/profile")
-    suspend fun updateProfile(@Body request: UpdateProfileRequest): Response<Unit>
+    @Multipart
+    @PATCH("/api/user/register")
+    suspend fun submitReporterDetails(
+        @Part("userId") userId: RequestBody,
+        @Part("gender") gender: RequestBody,
+        @Part("dateOfBirth") dateOfBirth: RequestBody,
+        @Part("occupation") occupation: RequestBody,
+        @Part image: MultipartBody.Part
+    ): Response<DetailsResponse>
+
+    @GET("/api/user/profile")
+    suspend fun getReporterProfile(): Response<UserProfile>
+
+    @PATCH("/api/user/profile")
+    suspend fun updateReporterProfile(@Body request: UpdateProfileRequest): Response<Unit>
+
+    @Multipart
+    @PATCH("/api/user/profile/picture")
+    suspend fun uploadReporterProfilePicture(@Part image: MultipartBody.Part): Response<Unit>
+
+    @Multipart
+    @PATCH("/api/user/profile/cover")
+    suspend fun uploadReporterCoverPhoto(@Part image: MultipartBody.Part): Response<Unit>
+
+    // --- Organization Endpoints ---
+    @POST("/api/user/register/organization")
+    suspend fun signupOrganization(@Body request: OrganizationSignupRequest): Response<SignupResponse>
+
+    @Multipart
+    @PATCH("/api/user/register/organization")
+    suspend fun submitOrganizationDetails(
+        @Part("userId") userId: RequestBody,
+        @Part("sectorId") sectorId: RequestBody,
+        @Part("dateEstablished") dateEstablished: RequestBody,
+        @Part("organizationSize") organizationSize: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part("alternatePhone") alternatePhone: RequestBody,
+        @Part logo: MultipartBody.Part
+    ): Response<DetailsResponse>
+
+    @GET("/api/organization/profile")
+    suspend fun getOrganizationProfile(): Response<OrganizationProfile>
+
+    @PATCH("/api/organization/profile")
+    suspend fun updateOrganizationProfile(@Body request: UpdateOrganizationProfileRequest): Response<Unit>
+
+    @GET("/api/meta?type=sectors") // Corrected Path
+    suspend fun getSectors(): Response<List<Sector>>
+
+    @Multipart
+    @PATCH("/api/organization/profile/picture")
+    suspend fun uploadOrganizationProfilePicture(@Part image: MultipartBody.Part): Response<Unit>
+
+    @Multipart
+    @PATCH("/api/organization/profile/cover")
+    suspend fun uploadOrganizationCoverPhoto(@Part image: MultipartBody.Part): Response<Unit>
 }
-
-
-data class ForgotPasswordRequest(
-    val email: String
-)
-
-data class ForgotPasswordResponse(
-    val message: String
-)
-
-data class ResetPasswordRequest(
-    val newPassword: String,
-    val confirmPassword: String,
-    val token: String
-)
-
-data class ResetPasswordResponse(
-    val message: String
-)

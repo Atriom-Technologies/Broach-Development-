@@ -5,30 +5,36 @@ import com.example.broach.network.ApiService
 import com.example.broach.network.OrganizationSignupRequest
 import com.example.broach.network.SignupRequest
 import com.example.broach.network.SignupResponse
-import org.json.JSONObject
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+import java.lang.Exception
+
+data class ErrorResponse(
+    @SerializedName("message")
+    val errorMessage: String?
+)
 
 class SignupRepository(private val apiService: ApiService) {
 
-    private suspend fun <T : Any> executeRequest(call: suspend () -> retrofit2.Response<T>): Result<T> {
+    private fun getErrorMessage(errorBody: String?): String {
+        if (errorBody.isNullOrBlank()) return "An unknown error occurred"
         return try {
-            val response = call.invoke()
+            val gson = Gson()
+            val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
+            errorResponse.errorMessage ?: "Failed to parse error response from: $errorBody"
+        } catch (e: Exception) {
+            errorBody
+        }
+    }
+
+    suspend fun signupOrganization(request: OrganizationSignupRequest): Result<SignupResponse> {
+        return try {
+            val response = apiService.signupOrganization(request)
             if (response.isSuccessful && response.body() != null) {
                 Result.Success(response.body()!!)
             } else {
                 val errorBody = response.errorBody()?.string()
-                val errorMessage = if (!errorBody.isNullOrBlank()) {
-                    try {
-                        // Try to parse a specific 'message' field from a JSON object
-                        val errorJson = JSONObject(errorBody)
-                        errorJson.getString("message")
-                    } catch (e: Exception) {
-                        // If parsing fails, return the raw error body as it may be a simple string
-                        errorBody
-                    }
-                } else {
-                    "Signup failed with code: ${response.code()}"
-                }
-                Result.Error(Exception(errorMessage))
+                Result.Error(Exception(getErrorMessage(errorBody)))
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -36,10 +42,16 @@ class SignupRepository(private val apiService: ApiService) {
     }
 
     suspend fun signupReporter(request: SignupRequest): Result<SignupResponse> {
-        return executeRequest { apiService.signupReporter(request) }
-    }
-
-    suspend fun signupOrganization(request: OrganizationSignupRequest): Result<SignupResponse> {
-        return executeRequest { apiService.signupOrganization(request) }
+        return try {
+            val response = apiService.signupReporter(request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.Success(response.body()!!)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Result.Error(Exception(getErrorMessage(errorBody)))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 }

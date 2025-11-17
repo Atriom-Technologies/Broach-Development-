@@ -1,5 +1,6 @@
 package com.example.broach.features.login.ui
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -20,7 +21,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.broach.R
 import com.example.broach.databinding.ActivityLoginBinding
-import com.example.broach.features.home.ui.DetailsActivity
 import com.example.broach.features.home.ui.HomeActivity
 import com.example.broach.features.login.data.LoginRepository
 import com.example.broach.features.signup.ui.SignupActivity
@@ -53,17 +53,12 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize the custom loading dialog
         setupLoadingDialog()
-
-        // Set up listeners for the login button and text fields.
         setupListeners()
-        // Observe the login result from the ViewModel.
         observeLoginUiState()
 
         binding.tvSignUp?.setOnClickListener {
-            val intent = Intent(this, SignupActivity::class.java)
-            startActivity(intent)
+            showRoleSelectionDialog()
         }
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -72,6 +67,20 @@ class LoginActivity : AppCompatActivity() {
                 binding.fragmentContainer?.visibility = View.GONE
             }
         }
+    }
+
+    private fun showRoleSelectionDialog() {
+        val roles = arrayOf("Reporter/Requester", "Support Organization")
+        AlertDialog.Builder(this)
+            .setTitle("Who are you?\n Help us to know you better")
+            .setItems(roles) { _, which ->
+                val selectedRole = roles[which]
+                val intent = Intent(this, SignupActivity::class.java).apply {
+                    putExtra("USER_CATEGORY", selectedRole)
+                }
+                startActivity(intent)
+            }
+            .show()
     }
 
     private fun setupListeners() {
@@ -87,7 +96,6 @@ class LoginActivity : AppCompatActivity() {
             binding.tilEmail?.error = null
         })
         binding.tvForgotPassword?.setOnClickListener {
-            // Hide the login UI and show the fragment container
             binding.loginLayout?.visibility = View.GONE
             binding.fragmentContainer?.visibility = View.VISIBLE
 
@@ -110,11 +118,7 @@ class LoginActivity : AppCompatActivity() {
                     is LoginUiState.Success -> {
                         binding.btnLogin?.isEnabled = true
                         hideLoadingDialog()
-                        if (state.isDetailsSubmitted) {
-                            navigateToHomePage(state.userType, state.name, state.imageUrl)
-                        } else {
-                            navigateToDetailsPage(state.userType)
-                        }
+                        navigateToHomePage(state.userType, state.name, state.imageUrl)
                     }
                     is LoginUiState.Error -> {
                         binding.btnLogin?.isEnabled = true
@@ -126,15 +130,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToDetailsPage(userRole: String) {
-        val intent = Intent(this, DetailsActivity::class.java).apply {
-            putExtra("USER_ROLE", userRole)
-        }
-        startActivity(intent)
-        finish()
-    }
-
-    private fun navigateToHomePage(userRole: String, name: String?, imageUrl: String?) {
+    private fun navigateToHomePage(userRole: String?, name: String?, imageUrl: String?) {
         val intent = Intent(this, HomeActivity::class.java).apply {
             putExtra("USER_ROLE", userRole)
             putExtra("USER_NAME", name)

@@ -27,7 +27,7 @@
         android:id="@+id/iv_adjustment_frame"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:src="@drawable/ic_adjustment_frame"
+        android:src="@drawable/img_profile_cover_placeholder"
         app:layout_constraintTop_toTopOf="@id/iv_photo_to_adjust"
         app:layout_constraintBottom_toBottomOf="@id/iv_photo_to_adjust"
         app:layout_constraintStart_toStartOf="@id/iv_photo_to_adjust"
@@ -40,7 +40,8 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="Back to Photo Options"
+        android:text="@string/back_to_photo_options"
+        android:backgroundTint="@color/primary_color2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

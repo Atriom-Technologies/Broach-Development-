@@ -97,11 +97,89 @@
     <string name="occupation">Occupation</string>
     <string name="location">Address</string>
     <string name="user_name">User Name</string>
+    <string name="hi_name">User name</string>
+    <string name="person">person</string>
+    <string name="what">What will you like to do today?</string>
+    <string name="broach_news_amp_events"><![CDATA[Broach News &amp; Events]]></string>
+    <string name="see_more1">See more</string>
+    <string name="earn">Earn more report/request slots\non your broach subscription!</string>
+    <string name="view_details">View details</string>
+    <string name="news">news</string>
+    <string name="back_to_photo_options">Back to Photo Options</string>
+    <string name="lets_know_you">Let\'s know you!</string>
+    <string name="we_d_love_to_know_who_s_coming">We\'d love to know who\'s coming\n in. please specify below.</string>
+    <string name="spCategory">Specify Category</string>
+    <string name="not_sure_which_you_are">Not sure which you are?</string>
+    <string name="welcome">WELCOME!</string>
+    <string name="login">Enter your details to Sign In</string>
+    <string name="password">Enter Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="action_sign_in">Sign In</string>
+    <string name="DH_account">Don\'t Have an Account?</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="create_your_account">Create your Account</string>
+    <string name="hello_please_complete">Hello! Please complete the details\nbelow to open your account</string>
+    <string name="organization_name">Full name of organization</string>
+    <string name="phone_contact">Main phone contact</string>
+    <string name="preferred_password">Preferred Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="already_have_an_account_sign_in">Already have an account?</string>
+    <string name="login2">Sign In</string>
+    <string name="snap">Oh Snap! You want to leave!</string>
+    <string name="sure_message">Are you sure you want to log out of\nthe Broach App?</string>
+    <string name="sorry_error">Sorry! It was an error</string>
+    <string name="log_me_out">Yes! Please log me out</string>
+    <string name="logout_icon">logout_icon</string>
+    <string name="log_out_complete">Log out complete!</string>
+    <string name="you_ve_successfully_logged_out_of_your_account_sad_to_see_you_go">You\'ve successfully logged out of your account. Sad to see you go!</string>
+    <string name="log_out">Log Out</string>
+    <string name="_16_06_2024">16-06-2025</string>
+    <string name="time">20:16</string>
+    <string name="box">box</string>
+    <string name="req_name">Requester name</string>
+    <string name="req_ty">Request type</string>
+    <string name="foundation">Foundation name</string>
+    <string name="case_ty">Case type</string>
+    <string name="personal_details">Personal Details</string>
+    <string name="get_to_know">Let\'s get to know a few more things \nabout you...It\'ll only take a moment!</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="let_s_put_a_face">Let\'s put a face to\nyour unique Broach\nAccount!\nUpload your Photo</string>
+    <string name="profile_options">Profile Options</string>
+    <string name="subscription">Subscription</string>
+    <string name="my_wallet">My Wallet</string>
+    <string name="support_feedback">Support/Feedback</string>
+    <string name="faqs">FAQs</string>
+    <string name="settings">Settings</string>
+    <string name="report_a_problem">Report a problem</string>
+    <string name="full_name">Fullname</string>
+    <string name="requester_name">Requester name</string>
+    <string name="case_type">Case type</string>
+    <string name="event_date">20-05-2025</string>
+    <string name="date_">20-05-2025</string>
+    <string name="req_name2">Requester name</string>
+    <string name="req_serv">Service type</string>
+    <string name="services">Foundation name</string>
+    <string name="service_ty">Service type</string>
+    <string name="notifications">notifications</string>
+    <string name="chat">Chat</string>
+    <string name="flow">Flow</string>
+    <string name="sign_in">Sign in</string>
+    <string name="reports_treated_0_0">Reports treated: 0/0</string>
     <string-array name="organization_sectors">
-        <item>Healthcare</item>
-        <item>Education</item>
-        <item>Technology</item>
-        <item>Finance</item>
+        <item>Mental Health</item>
+        <item>Legal Assistance</item>
+        <item>Gender Based Advocacy</item>
+        <item>Human Rights</item>
+        <item>Child Rights</item>
+        <item>Crisis Support</item>
+        <item>Social Welfare and Livelihood Support Services</item>
+        <item>Health Medical Services</item>
+        <item>Community Advocacy</item>
+        <item>Disability and Inclusion</item>
+        <item>Disability and Inclusion</item>
+        <item>Technology and Digital Rights</item>
+        <item>Health and rehabilitation Services</item>
         <item>Other</item>
     </string-array>
 </resources>

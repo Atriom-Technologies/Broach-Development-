@@ -29,7 +29,7 @@ class BottomNavActivity : AppCompatActivity() {
                 R.id.nav_home -> replaceFragment(RequesterHomeFragment())
                 R.id.nav_notifications -> replaceFragment(NotificationsFragment()) // Placeholder
                 R.id.nav_chat -> replaceFragment(ChatFragment()) // Placeholder
-                R.id.nav_profile -> replaceFragment(ProfileFragment()) // Placeholder
+                R.id.nav_profile -> replaceFragment(ProfileFragment())
             }
             true
         }

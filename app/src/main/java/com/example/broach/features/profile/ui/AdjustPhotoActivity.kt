@@ -4,9 +4,10 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.canhub.cropper.CropImage
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.example.broach.databinding.ActivityAdjustPhotoBinding
 
@@ -14,21 +15,27 @@ class AdjustPhotoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAdjustPhotoBinding
 
-    private val cropImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val uri = CropImage.getActivityResult(result.data)?.uriContent
+    private val cropImageLauncher = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            val uri = result.uriContent
             val resultIntent = Intent()
             resultIntent.data = uri
             setResult(Activity.RESULT_OK, resultIntent)
-            finish()
         }
+        // After the cropper is finished (either by cropping or cancelling),
+        // we finish this activity to go back to the profile.
+        finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAdjustPhotoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Set up the toolbar
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false) // The title is already in the XML
 
         val imageUri = intent.data
 
@@ -44,10 +51,18 @@ class AdjustPhotoActivity : AppCompatActivity() {
     }
 
     private fun launchCropper(uri: Uri) {
-        val cropImage = CropImage.activity(uri)
-            .setGuidelines(CropImageView.Guidelines.ON)
-            .setAspectRatio(16, 9) // Example aspect ratio for a cover photo
-            .getIntent(this)
-        cropImageLauncher.launch(cropImage)
+        val cropOptions = CropImageOptions().apply {
+            guidelines = CropImageView.Guidelines.ON
+            aspectRatioX = 16
+            aspectRatioY = 9
+            fixAspectRatio = true
+        }
+        val options = CropImageContractOptions(uri, cropOptions)
+        cropImageLauncher.launch(options)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressedDispatcher.onBackPressed()
+        return true
     }
 }

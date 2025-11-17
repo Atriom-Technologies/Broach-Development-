@@ -15,44 +15,24 @@ class SignupViewModel(private val repository: SignupRepository) : ViewModel() {
     private val _uiState = MutableStateFlow<SignupUiState>(SignupUiState.Idle)
     val uiState: StateFlow<SignupUiState> = _uiState
 
-    val fullName = MutableStateFlow("")
-    val organizationName = MutableStateFlow("")
-    val email = MutableStateFlow("")
-    val phone = MutableStateFlow("")
-    val password = MutableStateFlow("")
-    val confirmPassword = MutableStateFlow("")
-
-    fun onSignupClicked(isOrganization: Boolean) {
-        _uiState.value = SignupUiState.Loading
-
+    fun signupOrganization(request: OrganizationSignupRequest) {
         viewModelScope.launch {
-            val result = if (isOrganization) {
-                val request = OrganizationSignupRequest(
-                    organizationName = organizationName.value,
-                    email = email.value,
-                    phone = phone.value,
-                    password = password.value,
-                    confirmPassword = confirmPassword.value
-                )
-                repository.signupOrganization(request)
-            } else {
-                val request = SignupRequest(
-                    fullName = fullName.value,
-                    email = email.value,
-                    phone = phone.value,
-                    password = password.value,
-                    confirmPassword = confirmPassword.value
-                )
-                repository.signupReporter(request)
+            _uiState.value = SignupUiState.Loading
+            val result = repository.signupOrganization(request)
+            _uiState.value = when (result) {
+                is Result.Success -> SignupUiState.Success(result.data)
+                is Result.Error -> SignupUiState.Error(result.exception.message ?: "An unknown error occurred")
             }
+        }
+    }
 
-            when (result) {
-                is Result.Success -> {
-                    _uiState.value = SignupUiState.Success(result.data.message)
-                }
-                is Result.Error -> {
-                    _uiState.value = SignupUiState.Error(result.exception.message ?: "An unknown error occurred.")
-                }
+    fun signupReporter(request: SignupRequest) {
+        viewModelScope.launch {
+            _uiState.value = SignupUiState.Loading
+            val result = repository.signupReporter(request)
+            _uiState.value = when (result) {
+                is Result.Success -> SignupUiState.Success(result.data)
+                is Result.Error -> SignupUiState.Error(result.exception.message ?: "An unknown error occurred")
             }
         }
     }

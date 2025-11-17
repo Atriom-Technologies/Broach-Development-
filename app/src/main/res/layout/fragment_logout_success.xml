@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:showIn="@layout/activity_logout"
+    tools:context=".features.logout.ui.LogoutSuccessFragment">
 
     <ImageView
         android:id="@+id/iv_logout_success_icon"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginTop="64dp"
-        android:contentDescription="@string/logout_success"
         android:src="@drawable/ic_logout_success"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,7 +24,7 @@
         android:layout_marginTop="16dp"
         android:text="@string/log_out_complete"
         android:textColor="@color/primary_color2"
-        android:textSize="29sp"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,8 +37,7 @@
         android:layout_marginStart="32dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="32dp"
-        android:text="@string/you_ve_successfully_logged_out"
-        android:textSize="21sp"
+        android:text="@string/you_ve_successfully_logged_out_of_your_account_sad_to_see_you_go"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,14 +45,12 @@
 
     <Button
         android:id="@+id/btn_back_to_login"
-        android:layout_width="416dp"
-        android:layout_height="73dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="32dp"
-        android:text="@string/back_to_login_"
-        android:textSize="20sp"
-        android:backgroundTint="@color/primary_color2"
+        android:text="@string/back_to_login"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_logout_complete_message" />

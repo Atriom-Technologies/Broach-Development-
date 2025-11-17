@@ -23,10 +23,19 @@ class LoginViewModel(private val repository: LoginRepository) : ViewModel() {
 
             _uiState.value = when (result) {
                 is Result.Success -> {
-                    val role = result.data.userType ?: "Reporter/Requester"
-                    val isDetailsSubmitted = result.data.isDetailsSubmitted
+
+                    val userType = result.data.userType?.trim() ?: ""
+
+
+                    val role = if (userType.equals("support_organization", ignoreCase = true)) {
+                        "Support Organization"
+                    } else {
+                        "Reporter/Requester"
+                    }
+                    
+                    val isDetailsSubmitted = result.data.isDetailsSubmitted ?: false
                     LoginUiState.Success(
-                        userType = role, 
+                        userType = role,
                         isDetailsSubmitted = isDetailsSubmitted,
                         name = result.data.name,
                         imageUrl = result.data.imageUrl

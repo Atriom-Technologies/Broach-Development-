@@ -10,8 +10,12 @@ class LoginRepository(private val apiService: ApiService) {
 
     suspend fun login(loginRequest: LoginRequest): Result<LoginResponse> {
         return try {
-            val response = apiService.login(loginRequest).body()!!
-            Result.Success(response)
+            val response = apiService.login(loginRequest)
+            if (response.isSuccessful && response.body() != null) {
+                Result.Success(response.body()!!)
+            } else {
+                Result.Error(Exception("Login failed: ${response.message()}"))
+            }
         } catch (e: Exception) {
             Result.Error(e)
         }

@@ -51,6 +51,7 @@
             app:layout_constraintEnd_toEndOf="parent">
             <AutoCompleteTextView
                 android:id="@+id/tv_sector"
+                android:backgroundTint="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/sector_specialization"
@@ -72,6 +73,7 @@
             app:layout_constraintEnd_toEndOf="parent">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_date_established"
+                android:backgroundTint="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -92,6 +94,7 @@
             app:layout_constraintEnd_toEndOf="parent">
             <AutoCompleteTextView
                 android:id="@+id/tv_org_size"
+                android:backgroundTint="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="none"
@@ -111,6 +114,7 @@
             app:layout_constraintEnd_toEndOf="parent">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_address"
+                android:backgroundTint="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPostalAddress"
@@ -130,6 +134,7 @@
             app:layout_constraintEnd_toEndOf="parent">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_alt_contact"
+                android:backgroundTint="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="phone"
@@ -172,7 +177,7 @@
                     android:layout_marginTop="10dp"
                     android:layout_marginEnd="8dp"
                     android:text="@string/last_stop_please_upload_your_logo_here"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@id/btn_upload_photo"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/btn_image"

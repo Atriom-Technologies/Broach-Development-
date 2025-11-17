@@ -1,5 +1,6 @@
 package com.example.broach.features.home.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.broach.R
 import com.example.broach.databinding.FragmentRequesterHomeBinding
 import com.example.broach.features.home.ui.data.CaseHistoryAdapter
-import com.example.broach.features.home.ui.data.CaseHistoryItem
+import com.example.broach.features.profile.ui.ProfileActivity
 
 class RequesterHomeFragment : Fragment() {
 
@@ -34,46 +35,48 @@ class RequesterHomeFragment : Fragment() {
         setupCaseHistoryRecyclerView()
         setupServiceHistoryRecyclerView()
 
-        // Handle button clicks (e.g., Report a Case)
         binding.btnReportCase.setOnClickListener {
-            // TODO: Navigate to the Report Case screen
+            binding.rvCaseHistory.visibility = View.VISIBLE
         }
 
         binding.btnRequestService.setOnClickListener {
-            // TODO: Navigate to the Request Service screen
+            binding.rvServiceHistory.visibility = View.VISIBLE
+        }
+
+        // CORRECTED: Added listener for the BottomNavigationView
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_profile -> {
+                    val intent = Intent(activity, ProfileActivity::class.java).apply {
+                        putExtra("USER_NAME", name)
+                        putExtra("USER_IMAGE_URL", imageUrl)
+                    }
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
         }
 
         // Populate header details
         binding.tvGreeting.text = "Hello, $name"
         Glide.with(this)
             .load(imageUrl)
-            .placeholder(R.drawable.ic_profile_placeholder) // Add a placeholder
-            .into(binding.ivUserProfile)
+            .placeholder(R.drawable.ic_person)
+            .circleCrop()
+            .into(binding.ivProfile)
     }
 
     private fun setupCaseHistoryRecyclerView() {
-        val dummyCaseData = listOf(
-            CaseHistoryItem("16-06-2024", "18:45", "Charity Heart Foundation", "Gender Based Violence", true),
-        )
-
-        val adapter = CaseHistoryAdapter(dummyCaseData)
+        // Dummy data for now
+        val adapter = CaseHistoryAdapter(emptyList())
         binding.rvCaseHistory.layoutManager = LinearLayoutManager(context)
         binding.rvCaseHistory.adapter = adapter
     }
 
     private fun setupServiceHistoryRecyclerView() {
-        val dummyServiceData = listOf(
-            CaseHistoryItem(
-                "22-11-2024",
-                "08:07",
-                "Blue Flower Support Services",
-                "Welfare services",
-                false
-            ),
-        )
-
-        // Using the same adapter for simplicity, customize if needed
-        val adapter = CaseHistoryAdapter(dummyServiceData)
+        // Dummy data for now
+        val adapter = CaseHistoryAdapter(emptyList())
         binding.rvServiceHistory.layoutManager = LinearLayoutManager(context)
         binding.rvServiceHistory.adapter = adapter
     }
