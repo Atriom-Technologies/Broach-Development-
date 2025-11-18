@@ -8,11 +8,17 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RegisterReqRepDto, RequesterCompleteProfileDto } from './dto/requestDtos/register-req-rep.dto';
+import {
+  RegisterReqRepDto,
+  RequesterCompleteProfileDto,
+} from './dto/requestDtos/register-req-rep.dto';
 import * as argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, UserType } from '@prisma/client';
-import { CompleteSupportOrgProfileDto, RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
+import {
+  CompleteSupportOrgProfileDto,
+  RegisterSupportOrgDto,
+} from './dto/requestDtos/register-support-org.dto';
 import { LoginDto } from './dto/requestDtos/login.dto';
 import { RefreshDto } from './dto/requestDtos/refresh.dto';
 import { TokenService } from './services/token.service';
@@ -27,7 +33,6 @@ import {
 } from './dto/requestDtos/forgot-password.dto';
 import { randomBytes } from 'crypto';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
-
 
 @Injectable()
 export class AuthService {
@@ -49,18 +54,16 @@ export class AuthService {
 
     // Check if password matches
     if (password !== confirmPassword) {
-      this.logger.warn(
-        `Password mismatch for email: ${dto.email}`,
-      );
+      this.logger.warn(`Password mismatch for email: ${dto.email}`);
       throw new BadRequestException('Passwords do not match');
     }
-    
+
     // Check if user type is requester_reporter before proceeding
-    if(userType !== UserType.requester_reporter) {
-      this.logger.warn(
-        `User ${dto.email} not a requester/reporter`
+    if (userType !== UserType.requester_reporter) {
+      this.logger.warn(`User ${dto.email} not a requester/reporter`);
+      throw new UnauthorizedException(
+        'Did you mean to register as an organization?',
       );
-      throw new UnauthorizedException('Did you mean to register as an organization?')
     }
 
     // Check if user exists to avoid duplicate email or phone
@@ -108,13 +111,9 @@ export class AuthService {
       'Failed to sign refresh token during login',
     );
 
-                // Store session
+    // Store session
     const session = await this.safeExecutor.run(
-      () =>
-        this.sessionService.createSession(
-          user.id,
-          refreshTokenRaw,
-        ),
+      () => this.sessionService.createSession(user.id, refreshTokenRaw),
       'Failed to create session during login',
     );
 
@@ -123,7 +122,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       userType: user.userType,
-      sessionId: session.id
+      sessionId: session.id,
     };
     const accessToken = await this.safeExecutor.run(
       () => this.tokenService.signAccessToken(payLoad),
@@ -132,23 +131,22 @@ export class AuthService {
     return {
       id: user.id,
       userType: user.userType,
-      accessToken
-    }
+      accessToken,
+    };
   }
 
   // complete the profile creation from another page before login
-async completeRequesterProfile(
+  async completeRequesterProfile(
     dto: RequesterCompleteProfileDto,
     userType: UserType,
     file?: Express.Multer.File,
   ) {
-    
     // Check if user is reporter_requester before proceeding
-        if(userType !== 'requester_reporter') {
-      this.logger.warn(
-        `User not a requester/reporter`
+    if (userType !== 'requester_reporter') {
+      this.logger.warn(`User not a requester/reporter`);
+      throw new UnauthorizedException(
+        'Did you mean to register as an organization?',
       );
-      throw new UnauthorizedException('Did you mean to register as an organization?')
     }
     // Fetch User by Id to check if user exists
     const id = dto.userId;
@@ -201,7 +199,7 @@ async completeRequesterProfile(
         },
       );
 
-      profilePicture = uploadResult.secure_url 
+      profilePicture = uploadResult.secure_url;
       // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
     }
 
@@ -209,7 +207,7 @@ async completeRequesterProfile(
      * Prisma's upsert method is used here to either update an existing
      * requester reporter profile or create a new one if it doesn't exist.
      * This ensures that the profile is always in sync with the user's details.
-     * 
+     *
      * We split the payloads into create and update to handle optional fields properly.
      * For instance, if profilePicture is not provided during an update, we don't want to overwrite the existing picture with undefined.
      */
@@ -234,7 +232,6 @@ async completeRequesterProfile(
     //   user: { connect: { id } }, // reconnect user in create
     // }
 
-
     //Update the requester profile data
     const profile = await this.safeExecutor.run(
       () =>
@@ -245,13 +242,12 @@ async completeRequesterProfile(
       `Failed to update profile for user: ${user.id}`,
     );
 
-        this.logger.debug(`Profile completed for user: ${user.id}`);
+    this.logger.debug(`Profile completed for user: ${user.id}`);
 
     return {
       name: profile.fullName,
-      imageUrl: profile.profilePicture
-    }
-
+      imageUrl: profile.profilePicture,
+    };
   }
 
   // Organization Registration
@@ -267,12 +263,12 @@ async completeRequesterProfile(
       throw new BadRequestException('Passwords do not match');
     }
 
-        // Check if user type is requester_reporter before proceeding
-    if(userType !== UserType.support_organization) {
-      this.logger.warn(
-        `User ${dto.email} not a support organization`
+    // Check if user type is requester_reporter before proceeding
+    if (userType !== UserType.support_organization) {
+      this.logger.warn(`User ${dto.email} not a support organization`);
+      throw new UnauthorizedException(
+        'Did you mean to register as a Requester/reporter?',
       );
-      throw new UnauthorizedException('Did you mean to register as a Requester/reporter?')
     }
 
     // Check if user exists to avoid duplicate email or phone
@@ -332,20 +328,15 @@ async completeRequesterProfile(
       'Failed to create User and Support Organization Profile during registration',
     );
 
-
     // Create refresh token
     const refreshTokenRaw = this.safeExecutor.runSync(
       () => this.tokenService.signRefreshToken(),
       'Failed to sign refresh token during login',
     );
 
-                // Store session
+    // Store session
     const session = await this.safeExecutor.run(
-      () =>
-        this.sessionService.createSession(
-          user.id,
-          refreshTokenRaw,
-        ),
+      () => this.sessionService.createSession(user.id, refreshTokenRaw),
       'Failed to create session during login',
     );
 
@@ -354,7 +345,7 @@ async completeRequesterProfile(
       sub: user.id,
       email: user.email,
       userType: user.userType,
-      sessionId: session.id
+      sessionId: session.id,
     };
     const accessToken = await this.safeExecutor.run(
       () => this.tokenService.signAccessToken(payLoad),
@@ -363,25 +354,22 @@ async completeRequesterProfile(
     return {
       id: user.id,
       userType: user.userType,
-      accessToken
-    }
-
+      accessToken,
+    };
   }
 
-
-    // complete the profile creation from another page before login
-async completeSupportOrgProfile(
+  // complete the profile creation from another page before login
+  async completeSupportOrgProfile(
     dto: CompleteSupportOrgProfileDto,
     userType: UserType,
     file?: Express.Multer.File,
   ) {
-    
     // Check if user is reporter_requester before proceeding
-        if(userType !== UserType.support_organization) {
-      this.logger.warn(
-        `User not a Support Organization`
+    if (userType !== UserType.support_organization) {
+      this.logger.warn(`User not a Support Organization`);
+      throw new UnauthorizedException(
+        'Did you mean to register as reporter/requester?',
       );
-      throw new UnauthorizedException('Did you mean to register as reporter/requester?')
     }
     // Fetch User by Id to check if user exists
     const id = dto.userId;
@@ -401,7 +389,7 @@ async completeSupportOrgProfile(
 
     //  Handle profile picture
     // let profilePictureUrl = dto.profilePicture; // fallback to plain URL
-      let organizationLogoUrl: string | undefined;
+    let organizationLogoUrl: string | undefined;
 
     if (file) {
       const uploadResult = await new Promise<UploadApiResponse>(
@@ -434,7 +422,7 @@ async completeSupportOrgProfile(
         },
       );
 
-        organizationLogoUrl = (uploadResult as UploadApiResponse).secure_url;
+      organizationLogoUrl = (uploadResult as UploadApiResponse).secure_url;
       // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
     }
 
@@ -442,7 +430,7 @@ async completeSupportOrgProfile(
      * Prisma's upsert method is used here to either update an existing
      * requester reporter profile or create a new one if it doesn't exist.
      * This ensures that the profile is always in sync with the user's details.
-     * 
+     *
      * We split the payloads into create and update to handle optional fields properly.
      * For instance, if profilePicture is not provided during an update, we don't want to overwrite the existing picture with undefined.
      */
@@ -451,16 +439,17 @@ async completeSupportOrgProfile(
     const data: Prisma.SupportOrgProfileUpdateInput = {
       user: { connect: { id: user.id } },
       address: dto.address,
-      dateEstablished: dto.dateEstablished ? new Date(dto.dateEstablished) : undefined,
+      dateEstablished: dto.dateEstablished
+        ? new Date(dto.dateEstablished)
+        : undefined,
       organizationSize: dto.organizationSize,
       alternatePhone: dto.alternatePhone,
       ...(organizationLogoUrl && { organizationLogoUrl }),
       supportOrgSector: {
-      deleteMany: {}, // remove existing links
-      create: dto.sectorId.map((sectorId) => ({ sectorId })) || [],
-    },
+        deleteMany: {}, // remove existing links
+        create: dto.sectorId.map((sectorId) => ({ sectorId })) || [],
+      },
     };
-
 
     // // Then we split into seperate types for upsert
     // const updateData: Prisma.RequesterReporterProfileUpdateInput = {
@@ -482,107 +471,109 @@ async completeSupportOrgProfile(
           data,
           include: {
             supportOrgSector: true,
-          }
+          },
         }),
       `Failed to update profile for user: ${user.id}`,
     );
 
     return {
       name: profile.organizationName,
-      imageUrl: profile.organizationLogoUrl
-    }
+      imageUrl: profile.organizationLogoUrl,
+    };
   }
 
-
-
-  // Login logic
   async login(dto: LoginDto, ipAddress: string, userAgent: string) {
-    // Get email and password from dto
     const { email, password } = dto;
 
-    // Find user by email
-    const user = await this.safeExecutor.run(
-      () =>
-        this.prisma.user.findUnique({
-          where: { email },
-          include: {
-            requesterReporterProfile: true,
-            supportOrgProfile: true,
-          },
-        }),
-      'Failed to find user during login',
-    );
-    // If user not found, throw error
+    // --- Find user (expected failure, no SafeExecutor) ---
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        requesterReporterProfile: true,
+        supportOrgProfile: true,
+      },
+    });
+
+    // Login failure: email not found
     if (!user) {
-      this.logger.warn(`Login failed: User not found for email: ${email}`);
-      throw new UnauthorizedException('Please register');
+      this.logger.warn(
+        `Login failed: Email not found - ${email} from IP ${ipAddress}`,
+      );
+      throw new UnauthorizedException('Login failed');
     }
 
-    // Verify password
-    const isPasswordValid = await this.safeExecutor.run(
-      () => argon2.verify(user.password, password),
-      'Failed to verify password during login',
-    );
+    // Verify password (expected failure, no SafeExecutor)
+    const isPasswordValid = await argon2.verify(user.password, password);
     if (!isPasswordValid) {
-      this.logger.warn(`Login failed: Invalid password for email: ${email}`);
-      throw new UnauthorizedException('Invalid Password');
+      this.logger.warn(
+        `Login failed: Invalid password - ${email} from IP ${ipAddress}`,
+      );
+      throw new UnauthorizedException('Login failed');
     }
 
-    // Create refresh token
-    const refreshTokenRaw = this.safeExecutor.runSync(
-      () => this.tokenService.signRefreshToken(),
-      'Failed to sign refresh token during login',
-    );
+    try {
+      // --- Create refresh token (system error, use SafeExecutor) ---
+      const refreshTokenRaw = await this.safeExecutor.runSync(
+        () => this.tokenService.signRefreshToken(),
+        'Failed to sign refresh token during login',
+      );
 
-            // Store session
-    const session = await this.safeExecutor.run(
-      () =>
-        this.sessionService.createSession(
-          user.id,
-          refreshTokenRaw,
-          ipAddress,
-          userAgent,
-        ),
-      'Failed to create session during login',
-    );
+      // --- Store session ---
+      const session = await this.safeExecutor.run(
+        () =>
+          this.sessionService.createSession(
+            user.id,
+            refreshTokenRaw,
+            ipAddress,
+            userAgent,
+          ),
+        'Failed to create session during login',
+      );
 
-    // Create access token
-    const payLoad = {
-      sub: user.id,
-      email: user.email,
-      userType: user.userType,
-      sessionId: session.id
-    };
-    const accessToken = await this.safeExecutor.run(
-      () => this.tokenService.signAccessToken(payLoad),
-      'Failed to sign access token during login',
-    );
+      // --- Create access token ---
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        userType: user.userType,
+        sessionId: session.id,
+      };
 
-    // Log successful login
-    this.logger.log(`Login successful for ${user.email} from IP ${ipAddress}`);
-    
-    // THis code checks if user has profile details already submitted.
-    // It will help front end to redirect user to desired entry page.
-    const isProfileDetailsSubmitted = await this.profile.isProfileDetailsSubmitted(user.id)
+      const accessToken = await this.safeExecutor.run(
+        () => this.tokenService.signAccessToken(payload),
+        'Failed to sign access token during login',
+      );
 
-    // Return tokens and user info
-    return {
-      accessToken,
-      isProfileDetailsSubmitted,
-      refreshToken: refreshTokenRaw,
-      sessionId: session.id,
+      // --- Check profile completion ---
+      const isProfileDetailsSubmitted =
+        await this.profile.isProfileDetailsSubmitted(user.id);
+
+      // Log successful login
+      this.logger.log(`Login successful for ${email} from IP ${ipAddress}`);
+
+      // --- Return user info + tokens ---
+      return {
+        accessToken,
+        refreshToken: refreshTokenRaw,
+        sessionId: session.id,
+        isProfileDetailsSubmitted,
         id: user.id,
-        // email: user.email,
-        // phone: user.phone,
         userType: user.userType,
         username:
           user.userType === 'requester_reporter'
             ? user.requesterReporterProfile?.fullName
             : user.supportOrgProfile?.organizationName,
-      imageUrl: user.userType === 'requester_reporter'
-        ? user.requesterReporterProfile?.profilePicture
-        : user.supportOrgProfile?.organizationLogoUrl,
-    };
+        imageUrl:
+          user.userType === 'requester_reporter'
+            ? user.requesterReporterProfile?.profilePicture
+            : user.supportOrgProfile?.organizationLogoUrl,
+      };
+    } catch (err) {
+      // Only unexpected errors are logged
+      this.logger.error(`Unexpected login error for ${email}`, err.stack);
+      throw new InternalServerErrorException(
+        'Login failed due to system error',
+      );
+    }
   }
 
   async logout(sessionId: string, userId: string): Promise<void> {
@@ -607,7 +598,6 @@ async completeSupportOrgProfile(
       `User ${userId} successfully logged out from session ${sessionId}`,
     );
   }
-
 
   async refresh(dto: RefreshDto, sessionId: string) {
     // Extract refresh token and session ID from dto
@@ -662,7 +652,7 @@ async completeSupportOrgProfile(
       sub: user.id,
       email: user.email,
       userType: user.userType,
-      sessionId: session.id
+      sessionId: session.id,
     };
 
     const accessToken = await this.tokenService.signAccessToken(payload);
@@ -690,7 +680,6 @@ async completeSupportOrgProfile(
     this.logger.log(`User ${userId} logged out from ${result.count} sessions`);
     return result.count;
   }
-
 
   // Forgot password flow
   async requestPasswordReset(dto: ForgotPassword) {
@@ -738,55 +727,51 @@ async completeSupportOrgProfile(
       `Failed to store reset password token for user ${user.email}`,
     );
 
-      return {
-        email: user.email,
-        rawToken, // will be used internally to send email
-        expiresAt,
-      };
-
+    return {
+      email: user.email,
+      rawToken, // will be used internally to send email
+      expiresAt,
+    };
   }
 
   // Reset password flow
   async resetPassword(dto: ResetPassword, userId: string) {
-  const { token, newPassword, confirmPassword } = dto;
+    const { token, newPassword, confirmPassword } = dto;
 
-  const userToken = await this.prisma.passwordReset.findFirst({
-    where: { userId, expiresAt: { gt: new Date() } },
-    orderBy: { createdAt: 'desc' },
-  });
+    const userToken = await this.prisma.passwordReset.findFirst({
+      where: { userId, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
 
-  if (!userToken) throw new UnauthorizedException('Reset link expired');
+    if (!userToken) throw new UnauthorizedException('Reset link expired');
 
-  const isValid = await argon2.verify(userToken.token, token);
-  if (!isValid) throw new UnauthorizedException('Invalid token');
+    const isValid = await argon2.verify(userToken.token, token);
+    if (!isValid) throw new UnauthorizedException('Invalid token');
 
-  if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       this.logger.warn(
         `Password reset failed: new Password mismatch for userId: ${userId}`,
       );
       throw new BadRequestException('Passwords do not match');
+    }
+
+    const hashedPassword = await argon2.hash(newPassword);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+
+      await tx.passwordReset.delete({
+        where: { id: userToken.id }, // IMPORTANT FIX
+      });
+
+      await tx.refreshSession.deleteMany({ where: { userId } });
+    });
   }
 
-  const hashedPassword = await argon2.hash(newPassword);
-
-  await this.prisma.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
-
-    await tx.passwordReset.delete({
-      where: { id: userToken.id }, // IMPORTANT FIX
-    });
-
-    await tx.refreshSession.deleteMany({ where: { userId } });
-  });
-}
-
-
-
-
-/*   async resetPassword(dto: ResetPassword) {
+  /*   async resetPassword(dto: ResetPassword) {
     // Retrieve userId and token from client/dto
     const [token, userId, newPassword, confirmPassword] = dto.token.split(':');
 
