@@ -80,12 +80,12 @@ export class CasesService {
 
     /**
      * Run case and report submission and notification of organization as a transaction
-     * The custom safe executor helper function wraps try catch function, takes two arguments. 
+     * The custom safe executor helper function wraps try catch function, takes two arguments.
      * Takes the function to be executed in the try block and error message for the catch block
      */
     return this.safeExecutor.run(async () => {
-      return this.prisma.$transaction( async (tx) => {
-                // Build the data to be created
+      return this.prisma.$transaction(async (tx) => {
+        // Build the data to be created
         const data: Prisma.CaseDetailsCreateInput = {
           requesterReporterProfile: { connect: { id: profile.id } },
           caseType: { connect: { id: caseType.id } },
@@ -116,7 +116,6 @@ export class CasesService {
           }),
         };
 
-
         // Create case via repo
         const caseRecord = await this.repo.createCase(
           {
@@ -131,23 +130,20 @@ export class CasesService {
           tx,
         );
 
-
-
         // Create notification for all organizations atomically... Bros browse about am if you no know. me sef no sabi am..
-        const count = await this.notificationService.createNotificationForAllOrgs(
-          {
-            senderId: user.id,
-            relatedId: caseRecord.id,
-            type: EngagementType.CASE_REPORT,
-            message: `Hello! You've got New Case Report from ${user.requesterReporterProfile?.fullName}`,
-            status: NotificationStatus.pending
-          },
-          tx,
-        );
-
-      })
-    },` Failed to Execute transactions for case creation and notification`)
-
+        const count =
+          await this.notificationService.createNotificationForAllOrgs(
+            {
+              senderId: user.id,
+              relatedId: caseRecord.id,
+              type: EngagementType.CASE_REPORT,
+              message: `Hello! You've got New Case Report from ${user.requesterReporterProfile?.fullName}`,
+              status: NotificationStatus.pending,
+            },
+            tx,
+          );
+      });
+    }, ` Failed to Execute transactions for case creation and notification`);
   }
 
   async getCaseById(id: string) {
