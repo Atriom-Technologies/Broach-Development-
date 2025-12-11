@@ -58,7 +58,6 @@ export class MetaService {
       rows.map((row) => ({
         id: row.id,
         label: toReadableLabel(row.name),
-        value: row.name, // optional
       }));
     const [sectors, caseTypes, serviceTypes, vulnerabilityStatuses] =
       await Promise.all([
@@ -71,10 +70,10 @@ export class MetaService {
       ]);
 
     return {
-      sectors,
-      caseTypes,
-      serviceTypes,
-      vulnerabilityStatuses,
+      sectors: format(sectors),
+      caseTypes: format(caseTypes),
+      serviceTypes: format(serviceTypes),
+      vulnerabilityStatuses: format(vulnerabilityStatuses),
     };
   }
 }
