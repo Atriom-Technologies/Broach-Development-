@@ -13,3 +13,7 @@ export function parseEnum<T extends Record<string, string>>(enumObj: T) {
     label: humanizeEnum(item),
   }));
 }
+
+export function toReadableLabel(str: string): string {
+  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}

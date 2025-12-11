@@ -12,7 +12,7 @@ import {
   NoOfAssailants,
   MaritalStatus,
 } from '@prisma/client';
-import { parseEnum } from 'src/utils/formatString';
+import { parseEnum, toReadableLabel } from 'src/utils/formatString';
 
 @Injectable()
 export class MetaService {
@@ -54,6 +54,12 @@ export class MetaService {
 
   // This is for look up tables where enums have been convertedd to tables
   async getLookupTables() {
+    const format = (rows: { id: string; name: string }[]) =>
+      rows.map((row) => ({
+        id: row.id,
+        label: toReadableLabel(row.name),
+        value: row.name, // optional
+      }));
     const [sectors, caseTypes, serviceTypes, vulnerabilityStatuses] =
       await Promise.all([
         this.prisma.sector.findMany({ select: { id: true, name: true } }),
