@@ -43,7 +43,7 @@ export class MetaService {
      * Object.entries() gives us a key-value pair
      * We reduce it in to a new object using the the reduce keyword where each key maps to the enumm values
      */
-    const formatted: Record<string, { value: string; label: string }[]> = {};
+    const formatted: Record<string, string[]> = {};
 
     for (const [key, enumObj] of Object.entries(enums)) {
       formatted[key] = Object.values(enumObj).map(v=>toReadableLabel(v));
