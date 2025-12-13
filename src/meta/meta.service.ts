@@ -46,7 +46,7 @@ export class MetaService {
     const formatted: Record<string, { value: string; label: string }[]> = {};
 
     for (const [key, enumObj] of Object.entries(enums)) {
-      formatted[key] = parseEnum(enumObj, key); // pass the enum name here
+      formatted[key] = Object.Values(enumObj).map(v=>toReadableLabel(v));
     }
 
     return formatted;
