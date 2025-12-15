@@ -108,7 +108,7 @@ export class CasesService {
           ...(dto.assailantDetails && {
             assailantDetails: {
               create: {
-                noOfAssailants: dto.assailantDetails.noOfPeople,
+                noOfAssailants: dto.assailantDetails.noOfAssailants,
                 gender: dto.assailantDetails.gender,
                 ageRange: dto.assailantDetails.ageRange,
               },

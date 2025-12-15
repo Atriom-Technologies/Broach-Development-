@@ -12,7 +12,7 @@ import {
   NoOfAssailants,
   MaritalStatus,
 } from '@prisma/client';
-import { parseEnum, toReadableLabel } from 'src/utils/formatString';
+import { humanize, parseEnum } from 'src/utils/formatString';
 
 @Injectable()
 export class MetaService {
@@ -43,10 +43,10 @@ export class MetaService {
      * Object.entries() gives us a key-value pair
      * We reduce it in to a new object using the the reduce keyword where each key maps to the enumm values
      */
-    const formatted: Record<string, string[]> = {};
+    const formatted: Record<string, { value: string; label: string }[]> = {};
 
     for (const [key, enumObj] of Object.entries(enums)) {
-      formatted[key] = Object.values(enumObj).map(v=>toReadableLabel(v));
+      formatted[key] = parseEnum(enumObj, key); // pass the enum name here
     }
 
     return formatted;
@@ -57,7 +57,7 @@ export class MetaService {
     const format = (rows: { id: string; name: string }[]) =>
       rows.map((row) => ({
         id: row.id,
-        name: toReadableLabel(row.name),
+        name: humanize(row.name),
       }));
     const [sectors, caseTypes, serviceTypes, vulnerabilityStatuses] =
       await Promise.all([

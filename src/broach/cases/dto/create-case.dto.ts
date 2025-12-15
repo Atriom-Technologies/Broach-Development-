@@ -50,7 +50,7 @@ export class VictimDetailsDto {
 export class AssailantDetailsDto {
   @ApiProperty({ example: 'NO_OF_ASSAILANTS', enum: NoOfAssailants })
   @IsEnum(NoOfAssailants)
-  noOfPeople: NoOfAssailants;
+  noOfAssailants: NoOfAssailants;
 
   @ApiProperty({ example: 'GENDER', enum: Gender })
   @Transform(({ value }: { value: unknown }) =>
