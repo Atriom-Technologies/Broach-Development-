@@ -1,7 +1,10 @@
 package com.example.broach.features.home.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.NavHostFragment
+import com.example.broach.R
 import com.example.broach.databinding.ActivityHomeBinding
 
 class HomeActivity : AppCompatActivity() {
@@ -13,18 +16,25 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Get data from LoginActivity
         val userRole = intent.getStringExtra("USER_ROLE")
-        val name = intent.getStringExtra("USER_NAME")
-        val imageUrl = intent.getStringExtra("USER_IMAGE_URL")
 
-        val fragment = when (userRole) {
-            "Reporter/Requester" -> RequesterHomeFragment.newInstance(name, imageUrl)
-            "Support Organization" -> OrganizationHomeFragment.newInstance(name, imageUrl)
-            else -> RequesterHomeFragment.newInstance(name, imageUrl) // Default fragment
+        // --- Definitive Test: Log the received data ---
+        Log.d("HomeActivity", "Received from Login: Role='${userRole}'")
+
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        val navGraph = navController.navInflater.inflate(R.navigation.nav_graph)
+
+        // Determine the start destination based on role
+        val startDestination = if (userRole.equals("support organization", ignoreCase = true)) {
+            R.id.organizationHomeFragment
+        } else {
+            R.id.requesterHomeFragment
         }
 
-        supportFragmentManager.beginTransaction()
-            .replace(binding.fragmentContainer.id, fragment)
-            .commit()
+        navGraph.setStartDestination(startDestination)
+        navController.graph = navGraph
     }
 }

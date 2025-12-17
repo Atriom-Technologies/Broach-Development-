@@ -10,30 +10,21 @@ import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Query
 
 // --- Data Classes ---
 
-// REQUEST/RESPONSE FOR SIGNUP
+// UNIFIED REQUEST/RESPONSE FOR SIGNUP
 data class SignupRequest(
-    val fullName: String,
+    val name: String,
     val email: String,
-    val phone: String,
     val password: String,
-    val confirmPassword: String,
-)
-
-data class OrganizationSignupRequest(
-    val organizationName: String,
-    val email: String,
-    val phone: String,
-    val password: String,
-    val confirmPassword: String,
+    val userType: String
 )
 
 data class SignupResponse(
     val message: String,
-    val authToken: String?,
-    val userType: String?,
+    val authToken: String,
     val userId: String
 )
 
@@ -111,10 +102,14 @@ data class ForgotPasswordResponse(val message: String)
 data class ResetPasswordRequest(val newPassword: String, val confirmPassword: String, val token: String)
 data class ResetPasswordResponse(val message: String)
 
+data class MetaItem(val id: String, val name: String)
 
 interface ApiService {
 
     // --- Main User Actions ---
+    @POST("/api/user/register")
+    suspend fun signup(@Body request: SignupRequest): Response<SignupResponse>
+
     @POST("/api/user/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
@@ -125,9 +120,6 @@ interface ApiService {
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ResetPasswordResponse>
 
     // --- Reporter/Requester Endpoints ---
-    @POST("/api/user/register")
-    suspend fun signupReporter(@Body request: SignupRequest): Response<SignupResponse>
-
     @Multipart
     @PATCH("/api/user/register")
     suspend fun submitReporterDetails(
@@ -153,9 +145,6 @@ interface ApiService {
     suspend fun uploadReporterCoverPhoto(@Part image: MultipartBody.Part): Response<Unit>
 
     // --- Organization Endpoints ---
-    @POST("/api/user/register/organization")
-    suspend fun signupOrganization(@Body request: OrganizationSignupRequest): Response<SignupResponse>
-
     @Multipart
     @PATCH("/api/user/register/organization")
     suspend fun submitOrganizationDetails(
@@ -184,4 +173,15 @@ interface ApiService {
     @Multipart
     @PATCH("/api/organization/profile/cover")
     suspend fun uploadOrganizationCoverPhoto(@Part image: MultipartBody.Part): Response<Unit>
+
+    // --- Case and Service Request Endpoints ---
+
+    @GET("/api/meta")
+    suspend fun getMetaItems(@Query("type") type: String): Response<List<MetaItem>>
+
+    @POST("/api/cases/create")
+    suspend fun createCase(@Body request: CreateCaseDto): Response<Unit>
+
+    @POST("/api/service/create")
+    suspend fun createService(@Body request: CreateServiceDto): Response<Unit>
 }

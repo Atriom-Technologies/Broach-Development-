@@ -161,25 +161,59 @@
     <string name="req_serv">Service type</string>
     <string name="services">Foundation name</string>
     <string name="service_ty">Service type</string>
-    <string name="notifications">notifications</string>
+    <string name="notifications">Notifications</string>
     <string name="chat">Chat</string>
     <string name="flow">Flow</string>
     <string name="sign_in">Sign in</string>
     <string name="reports_treated_0_0">Reports treated: 0/0</string>
+    <string name="case_details">Case Details</string>
+    <string name="who_is_reporting">Who is reporting?*</string>
+    <string name="type_of_assault">Type of assault*</string>
+    <string name="where">Where?</string>
+    <string name="briefly_describe_what_happened">Briefly describe what happened</string>
+    <string name="_0_200">0/200</string>
+    <string name="compulsory_fields">*compulsory fields</string>
+    <string name="victim_details">Victim Details</string>
+    <string name="age_range">Age range*</string>
+    <string name="employment_status">Employment Status</string>
+    <string name="gender">Gender*</string>
+    <string name="vulnerability_status">Vulnerability Status*</string>
+    <string name="assailant_details">Assailant Details</string>
+    <string name="no_of_people">No of people*</string>
+    <string name="decla_ra_tion">I declare that all information provided by me is accurate and is not falsified in any way while making this report</string>
+    <string name="report_case">Report Case</string>
+    <string name="request_submit_ms">Your request has been sent and you will be getting a response soonest. Please keep checking your messages because you will be adequately notified when a response is ready</string>
+    <string name="back_to_home">Back to Home</string>
+    <string name="report_submit_ms">Your case has been reported to the necessary organizations you will be getting a response via your message tab. Please check regularly but you will be adequately notified.</string>
+    <string name="case_reported">Case Reported!</string>
+    <string name="check_box">I declare that all information provided by me is accurate and is not falsified in any way in requesting this service</string>
+    <string name="submit_request">Submit Request</string>
+    <string name="briefly">Briefly describe the nature of service you need</string>
+    <string name="work_status">Work Status*</string>
+    <string name="marital_status">Marital Status*</string>
+    <string name="type_of_service">Type of Service*</string>
+    <string name="email_address_re">Email Address*</string>
+    <string name="self">Self</string>
+    <string name="service_details">Service Details</string>
+    <string name="phone_no">Phone No.*</string>
+    <string name="who_needs_this_service">Who needs this service?*</string>
+    <string name="bio_details">Bio Details</string>
+    <string name="i_declare_that_all_information_provided_by_me_is_accurate_and_is_not_falsified_in_any_way_while_making_this_report">I declare that all information provided by me is accurate and is not falsified in any way while making this report</string>
+    <string name="no_notifications_yet">No Notifications Yet!</string>
+    <string name="no_notifications_description">Sorry you don\'t have any notifications.\nOnce you are contacted, you\'ll find them here.</string>
+    <string name="user_profile_image">User profile image description</string>
+    <string name="respond">Respond</string>
+    <string name="cancel">Cancel</string>
+    <string name="case_report_fr">Case Report From:</string>
+    <string name="no_date">18 Mar</string>
+    <string name="not_date">18 Mar</string>
+    <string name="accept">Contact Reporter</string>
+    <string name="resume">Resume</string>
+    <string name="end_case">End</string>
+    <string name="remove_case">Remove from list</string>
+    <string name="you_closed_this_case">You closed this case</string>
+    <string name="to_be_removed">to be removed in 2 days</string>
     <string-array name="organization_sectors">
-        <item>Mental Health</item>
-        <item>Legal Assistance</item>
-        <item>Gender Based Advocacy</item>
-        <item>Human Rights</item>
-        <item>Child Rights</item>
-        <item>Crisis Support</item>
-        <item>Social Welfare and Livelihood Support Services</item>
-        <item>Health Medical Services</item>
-        <item>Community Advocacy</item>
-        <item>Disability and Inclusion</item>
-        <item>Disability and Inclusion</item>
-        <item>Technology and Digital Rights</item>
-        <item>Health and rehabilitation Services</item>
-        <item>Other</item>
+        <item>Sector 1</item>
     </string-array>
 </resources>

@@ -26,11 +26,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.broach.R
 import com.example.broach.common.SessionManager
+import com.example.broach.common.ViewModelFactory
 import com.example.broach.databinding.FragmentOrganizationDetailsBinding
-import com.example.broach.features.details.data.DetailsRepository
 import com.example.broach.features.home.ui.HomeActivity
-import com.example.broach.network.ApiService
-import com.example.broach.network.RetrofitClient
 import com.example.broach.network.Sector
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -47,12 +45,11 @@ class OrganizationDetailsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var loadingDialog: Dialog
+    private lateinit var sessionManager: SessionManager // Correctly instantiated
     private var logoUri: Uri? = null
     private var sectors: List<Sector> = emptyList()
 
-    private val viewModel: DetailsViewModel by viewModels {
-        DetailsViewModelFactory(DetailsRepository(RetrofitClient.createService(ApiService::class.java)))
-    }
+    private val viewModel: DetailsViewModel by viewModels { ViewModelFactory(requireContext()) }
 
     private val orgSizeMap = mapOf(
         "5-10" to "size_5_10",
@@ -83,6 +80,8 @@ class OrganizationDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sessionManager = SessionManager(requireContext()) // Instantiate SessionManager
+
         setupLoadingDialog()
         setupTextWatchers()
         setupOrgSizeDropdown()
@@ -100,9 +99,9 @@ class OrganizationDetailsFragment : Fragment() {
             val selectedSectorName = binding.tvSector.text.toString()
 
             val selectedSector = sectors.find { it.name == selectedSectorName }
-            val userId = SessionManager.getUserId(requireContext())
+            val userId = sessionManager.getUserId() // Use instance to get userId
 
-            if (userId != null && orgSizeServer != null && selectedSector != null) {
+            if (userId != null && orgSizeServer != null && selectedSector != null && logoUri != null) {
                 val logoPart = uriToMultipart(logoUri!!)
                 viewModel.submitOrganizationDetails(
                     userId = userId,
@@ -177,20 +176,14 @@ class OrganizationDetailsFragment : Fragment() {
     private fun showErrorDialog(title: String, message: String) {
         AlertDialog.Builder(requireContext())
             .setTitle(title)
-            .setMessage("An error occurred:$message")
+            .setMessage("An error occurred: $message")
             .setPositiveButton("OK", null)
             .show()
     }
 
     private fun uriToMultipart(uri: Uri): MultipartBody.Part {
         val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
-
-        var mimeType = requireContext().contentResolver.getType(uri)
-        if (mimeType == null) {
-            val fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
-            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension.lowercase())
-        }
-
+        val mimeType = requireContext().contentResolver.getType(uri)
         val requestBody = inputStream!!.readBytes().toRequestBody(mimeType?.toMediaTypeOrNull())
         return MultipartBody.Part.createFormData("organizationLogo", "logo.jpg", requestBody)
     }

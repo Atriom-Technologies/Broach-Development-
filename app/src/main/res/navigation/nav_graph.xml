@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/requesterHomeFragment">
+
+    <fragment
+        android:id="@+id/requesterHomeFragment"
+        android:name="com.example.broach.features.home.ui.RequesterHomeFragment"
+        android:label="fragment_requester_home"
+        tools:layout="@layout/fragment_requester_home" >
+        <action
+            android:id="@+id/action_requesterHomeFragment_to_caseReportFragment"
+            app:destination="@id/caseReportFragment" />
+        <action
+            android:id="@+id/action_requesterHomeFragment_to_serviceRequestFragment"
+            app:destination="@id/serviceRequestFragment" />
+        <action
+            android:id="@+id/action_requesterHomeFragment_to_notificationsFragment"
+            app:destination="@id/notificationsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/organizationHomeFragment"
+        android:name="com.example.broach.features.home.ui.OrganizationHomeFragment"
+        android:label="fragment_organization_home"
+        tools:layout="@layout/fragment_organization_home" >
+        <action
+            android:id="@+id/action_organizationHomeFragment_to_organizationNotificationsFragment"
+            app:destination="@id/organizationNotificationsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/caseReportFragment"
+        android:name="com.example.broach.features.casereport.ui.CaseReportFragment"
+        android:label="fragment_case_report"
+        tools:layout="@layout/fragment_case_report" />
+
+    <fragment
+        android:id="@+id/serviceRequestFragment"
+        android:name="com.example.broach.features.servicerequest.ui.ServiceRequestFragment"
+        android:label="fragment_service_request"
+        tools:layout="@layout/fragment_service_request" />
+
+    <fragment
+        android:id="@+id/organizationDetailsFragment"
+        android:name="com.example.broach.features.details.ui.OrganizationDetailsFragment"
+        android:label="fragment_organization_details"
+        tools:layout="@layout/fragment_organization_details" />
+
+    <fragment
+        android:id="@+id/reporterDetailsFragment"
+        android:name="com.example.broach.features.details.ui.ReporterDetailsFragment"
+        android:label="fragment_reporter_details"
+        tools:layout="@layout/fragment_personal_details" />
+
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.example.broach.features.notifications.ui.NotificationsFragment"
+        android:label="fragment_notifications"
+        tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/organizationNotificationsFragment"
+        android:name="com.example.broach.features.notifications.ui.OrganizationNotificationsFragment"
+        android:label="fragment_organization_notifications"
+        tools:layout="@layout/fragment_organization_notifications" />
+
+</navigation>

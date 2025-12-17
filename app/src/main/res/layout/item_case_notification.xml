@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:strokeColor="@color/light_gray"
+        app:strokeWidth="1dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/tv_notification_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/gray"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/not_date" />
+
+            <!-- Status -->
+            <TextView
+                android:id="@+id/tv_notification_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/pending"
+                tools:textColor="@color/yellow" />
+
+            <!-- Organization Logo -->
+            <ImageView
+                android:id="@+id/iv_organization_logo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="8dp"
+                android:contentDescription="@string/user_profile_image"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_notification_date"
+                tools:src="@drawable/ic_person" />
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tv_notification_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textColor="@android:color/black"
+                app:layout_constraintStart_toEndOf="@id/iv_organization_logo"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/iv_organization_logo"
+                tools:text="Case Report with:" />
+
+            <!-- Organization Name -->
+            <TextView
+                android:id="@+id/tv_organization_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                app:layout_constraintStart_toEndOf="@id/iv_organization_logo"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_notification_title"
+                tools:text="@string/organization_name1" />
+
+            <!-- Category and See More -->
+            <TextView
+                android:id="@+id/tv_notification_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textSize="12sp"
+                app:layout_constraintStart_toEndOf="@id/iv_organization_logo"
+                app:layout_constraintTop_toBottomOf="@id/tv_organization_name"
+                tools:text="@string/case_type" />
+
+            <TextView
+                android:id="@+id/tv_see_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/see_more"
+                android:textColor="@color/primary_color2"
+                android:textSize="12sp"
+                app:layout_constraintStart_toEndOf="@id/tv_notification_category"
+                app:layout_constraintTop_toTopOf="@id/tv_notification_category"
+                app:layout_constraintBottom_toBottomOf="@id/tv_notification_category"/>
+
+            <!-- Button Group for Pending Status -->
+            <LinearLayout
+                android:id="@+id/group_pending_buttons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/iv_organization_logo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:visibility="visible">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_respond"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/primary_color2"
+                    android:text="@string/respond"
+                    app:iconGravity="textStart"
+                    app:icon="@drawable/ic_check_circle"
+                    style="@style/Widget.MaterialComponents.Button"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_cancel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/cancel"
+                    android:textColor="@color/red"
+                    app:iconGravity="textStart"
+                    app:icon="@drawable/ic_close"
+                    app:iconTint="@color/red"
+                    app:strokeColor="@color/red"
+                    app:strokeWidth="1dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+            </LinearLayout>
+
+            <!-- Button Group for In Discussion Status -->
+            <LinearLayout
+                android:id="@+id/group_in_disc_buttons"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/iv_organization_logo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_resume"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/resume"
+                    android:backgroundTint="@color/primary_color2"
+                    app:icon="@drawable/ic_loop"
+                    app:iconGravity="textStart"
+                    style="@style/Widget.MaterialComponents.Button"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_end"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/end_case"
+                    android:textColor="@color/primary_color2"
+                    app:strokeColor="@color/primary_color2"
+                    app:strokeWidth="1dp"
+                    app:icon="@drawable/ic_end"
+                    app:iconTint="@color/primary_color2"
+                    app:iconGravity="textStart"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+            </LinearLayout>
+            
+            <!-- Button Group for Closed Status -->
+            <LinearLayout
+                android:id="@+id/group_closed_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/iv_organization_logo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_remove"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/remove_case"
+                    android:backgroundTint="@color/primary_color2"
+                    app:icon="@drawable/ic_delete"
+                    app:iconGravity="textStart"/>
+
+                <TextView
+                    android:id="@+id/tv_removal_timer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android.layout_gravity="end"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/red"
+                    android:textSize="12sp"
+                    tools:text="@string/to_be_removed"/>
+
+            </LinearLayout>
+
+            <!-- Text for CLOSED Status -->
+            <TextView
+                android:id="@+id/tv_closed_message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="@string/you_closed_this_case"
+                android:textColor="@color/red"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/iv_user_profile_image"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+</layout>

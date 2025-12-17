@@ -15,43 +15,30 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.broach.R
+import com.example.broach.common.SessionManager
+import com.example.broach.common.ViewModelFactory
 import com.example.broach.databinding.ActivityLoginBinding
 import com.example.broach.features.home.ui.HomeActivity
-import com.example.broach.features.login.data.LoginRepository
 import com.example.broach.features.signup.ui.SignupActivity
-import com.example.broach.network.ApiService
-import com.example.broach.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var loadingDialog: Dialog
+    private lateinit var sessionManager: SessionManager
 
-    private val loginViewModel: LoginViewModel by viewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-                    val apiService = RetrofitClient.createService(ApiService::class.java)
-                    val repository = LoginRepository(apiService)
-                    @Suppress("UNCHECKED_CAST")
-                    return LoginViewModel(repository) as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
-        }
-    }
+    private val loginViewModel: LoginViewModel by viewModels { ViewModelFactory(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        sessionManager = SessionManager(this)
 
         setupLoadingDialog()
         setupListeners()
@@ -118,7 +105,14 @@ class LoginActivity : AppCompatActivity() {
                     is LoginUiState.Success -> {
                         binding.btnLogin?.isEnabled = true
                         hideLoadingDialog()
-                        navigateToHomePage(state.userType, state.name, state.imageUrl)
+
+                        // Save all user data to SessionManager
+                        state.authToken?.let { sessionManager.saveAuthToken(it) }
+                        state.userId?.let { sessionManager.saveUserId(it) }
+                        state.name?.let { sessionManager.saveUserName(it) }
+                        state.imageUrl?.let { sessionManager.saveUserImageUrl(it) }
+
+                        navigateToHomePage(state.userType)
                     }
                     is LoginUiState.Error -> {
                         binding.btnLogin?.isEnabled = true
@@ -130,11 +124,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToHomePage(userRole: String?, name: String?, imageUrl: String?) {
+    private fun navigateToHomePage(userRole: String?) {
         val intent = Intent(this, HomeActivity::class.java).apply {
             putExtra("USER_ROLE", userRole)
-            putExtra("USER_NAME", name)
-            putExtra("USER_IMAGE_URL", imageUrl)
         }
         startActivity(intent)
         finish()

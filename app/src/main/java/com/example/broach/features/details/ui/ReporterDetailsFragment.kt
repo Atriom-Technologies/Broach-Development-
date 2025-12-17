@@ -25,11 +25,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.broach.R
 import com.example.broach.common.SessionManager
+import com.example.broach.common.ViewModelFactory
 import com.example.broach.databinding.FragmentPersonalDetailsBinding
-import com.example.broach.features.details.data.DetailsRepository
 import com.example.broach.features.home.ui.HomeActivity
-import com.example.broach.network.ApiService
-import com.example.broach.network.RetrofitClient
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -45,11 +43,12 @@ class ReporterDetailsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var loadingDialog: Dialog
+    private lateinit var sessionManager: SessionManager
     private var photoUri: Uri? = null
     private var selectedGender: String? = null
 
     private val viewModel: DetailsViewModel by viewModels {
-        DetailsViewModelFactory(DetailsRepository(RetrofitClient.createService(ApiService::class.java)))
+        ViewModelFactory(requireContext())
     }
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -74,6 +73,8 @@ class ReporterDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sessionManager = SessionManager(requireContext())
+
         setupLoadingDialog()
         observeViewModel()
         setupTextWatchers()
@@ -84,9 +85,9 @@ class ReporterDetailsFragment : Fragment() {
         binding.btnContinue.setOnClickListener {
             val occupation = binding.etOccupation.text.toString().trim()
             val dob = binding.etDob.getTag(R.id.server_date) as? String ?: ""
-            val userId = SessionManager.getUserId(requireContext())
+            val userId = sessionManager.getUserId()
 
-            if (userId != null) {
+            if (userId != null && selectedGender != null && photoUri != null) {
                 val imagePart = uriToMultipart(photoUri!!)
                 viewModel.submitReporterDetails(
                     userId = userId,

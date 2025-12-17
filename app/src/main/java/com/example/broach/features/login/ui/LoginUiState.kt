@@ -4,10 +4,12 @@ sealed class LoginUiState {
     object Idle : LoginUiState()
     object Loading : LoginUiState()
     data class Success(
-        val userType: String, 
-        val isDetailsSubmitted: Boolean,
+        val authToken: String?,
+        val userId: String?,
+        val userType: String?,
         val name: String?,
-        val imageUrl: String?
+        val imageUrl: String?,
+        val isDetailsSubmitted: Boolean
     ) : LoginUiState()
     data class Error(val message: String) : LoginUiState()
 }

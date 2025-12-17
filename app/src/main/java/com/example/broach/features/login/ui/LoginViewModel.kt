@@ -2,7 +2,6 @@ package com.example.broach.features.login.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.broach.core.result.Result
 import com.example.broach.features.login.data.LoginRepository
 import com.example.broach.network.LoginRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,36 +13,23 @@ class LoginViewModel(private val repository: LoginRepository) : ViewModel() {
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    fun login(username: String, password: String) {
+    fun login(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
+            val loginRequest = LoginRequest(email, password)
+            val result = repository.login(loginRequest)
 
-            val request = LoginRequest(email = username, password = password)
-            val result = repository.login(request)
-
-            _uiState.value = when (result) {
-                is Result.Success -> {
-
-                    val userType = result.data.userType?.trim() ?: ""
-
-
-                    val role = if (userType.equals("support_organization", ignoreCase = true)) {
-                        "Support Organization"
-                    } else {
-                        "Reporter/Requester"
-                    }
-                    
-                    val isDetailsSubmitted = result.data.isDetailsSubmitted ?: false
-                    LoginUiState.Success(
-                        userType = role,
-                        isDetailsSubmitted = isDetailsSubmitted,
-                        name = result.data.name,
-                        imageUrl = result.data.imageUrl
-                    )
-                }
-                is Result.Error -> {
-                    LoginUiState.Error(message = "Login failed: ${result.exception.message}")
-                }
+            result.onSuccess { loginResponse ->
+                _uiState.value = LoginUiState.Success(
+                    authToken = loginResponse.authToken,
+                    userId = loginResponse.userId,
+                    userType = loginResponse.userType,
+                    name = loginResponse.name,
+                    imageUrl = loginResponse.imageUrl,
+                    isDetailsSubmitted = loginResponse.isDetailsSubmitted ?: false
+                )
+            }.onFailure { exception ->
+                _uiState.value = LoginUiState.Error(exception.message ?: "An unknown error occurred")
             }
         }
     }

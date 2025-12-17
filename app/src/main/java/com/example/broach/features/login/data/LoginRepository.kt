@@ -1,10 +1,8 @@
 package com.example.broach.features.login.data
 
-import com.example.broach.core.result.Result
 import com.example.broach.network.ApiService
 import com.example.broach.network.LoginRequest
 import com.example.broach.network.LoginResponse
-import java.lang.Exception
 
 class LoginRepository(private val apiService: ApiService) {
 
@@ -12,13 +10,12 @@ class LoginRepository(private val apiService: ApiService) {
         return try {
             val response = apiService.login(loginRequest)
             if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body()!!)
+                Result.success(response.body()!!)
             } else {
-                Result.Error(Exception("Login failed: ${response.message()}"))
+                Result.failure(Exception("Invalid credentials or server error"))
             }
         } catch (e: Exception) {
-            Result.Error(e)
+            Result.failure(e)
         }
     }
-
 }

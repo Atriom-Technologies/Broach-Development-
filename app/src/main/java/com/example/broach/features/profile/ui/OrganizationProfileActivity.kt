@@ -7,34 +7,33 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
-import com.canhub.cropper.CropImage
 import com.example.broach.R
+import com.example.broach.common.SessionManager
 import com.example.broach.databinding.ActivityOrganizationProfileBinding
+import com.example.broach.features.home.ui.HomeActivity
 import com.google.android.material.tabs.TabLayoutMediator
 
 class OrganizationProfileActivity : AppCompatActivity(), CoverPhotoOptionsFragment.CoverPhotoOptionListener {
 
     private lateinit var binding: ActivityOrganizationProfileBinding
+    private lateinit var sessionManager: SessionManager
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        result ->
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val imageUri = result.data?.data
-            if (imageUri != null) {
-                val resultIntent = Intent(this, AdjustPhotoActivity::class.java)
-                resultIntent.data = imageUri
+            result.data?.data?.let {
+                val resultIntent = Intent(this, AdjustPhotoActivity::class.java).apply {
+                    data = it
+                }
                 adjustPhotoLauncher.launch(resultIntent)
             }
         }
     }
 
-    private val adjustPhotoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        result ->
+    private val adjustPhotoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val croppedUri = result.data?.data
-            if (croppedUri != null) {
-                binding.ivCoverPhoto.setImageURI(croppedUri)
-                uploadCroppedImage(croppedUri) // Placeholder for your upload logic
+            result.data?.data?.let {
+                Glide.with(this).load(it).into(binding.ivCoverPhoto)
+                uploadCroppedImage(it)
             }
         }
     }
@@ -44,29 +43,38 @@ class OrganizationProfileActivity : AppCompatActivity(), CoverPhotoOptionsFragme
         binding = ActivityOrganizationProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Get data from intent
-        val name = intent.getStringExtra("USER_NAME")
-        val imageUrl = intent.getStringExtra("USER_IMAGE_URL")
+        sessionManager = SessionManager(this)
 
-        // Set up the ViewPager and TabLayout
-        val viewPager = binding.viewPagerHistory
-        val tabLayout = binding.tabLayout
+        setupBottomNav()
+        populateProfileDetails()
+        setupClickListeners()
+        setupViewPagerAndTabs()
+    }
 
-        viewPager.adapter = OrganizationProfileViewPagerAdapter(this)
-
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> "All Cases"
-                1 -> "Closed Cases"
-                2 -> "Pending Cases"
-                else -> null
+    private fun setupBottomNav() {
+        binding.bottomNavView.selectedItemId = R.id.nav_profile
+        binding.bottomNavView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    val intent = Intent(this, HomeActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                    startActivity(intent)
+                    true
+                }
+                R.id.nav_profile -> true // Already here
+                else -> false
             }
-        }.attach()
+        }
+    }
 
-        // Populate profile details
-        binding.tvUserName.text = name
+    private fun populateProfileDetails() {
+        val userName = sessionManager.getUserName()
+        val userImageUrl = sessionManager.getUserImageUrl()
+
+        binding.tvUserName.text = userName
         Glide.with(this)
-            .load(imageUrl)
+            .load(userImageUrl)
             .placeholder(R.drawable.ic_person)
             .circleCrop()
             .into(binding.ivProfilePic)
@@ -75,52 +83,49 @@ class OrganizationProfileActivity : AppCompatActivity(), CoverPhotoOptionsFragme
         binding.tvAllCasesCount.text = "0"
         binding.tvClosedCasesCount.text = "0"
         binding.tvPendingCasesCount.text = "0"
+    }
 
-        // Set up settings button click listener
+    private fun setupViewPagerAndTabs() {
+        binding.viewPagerHistory.adapter = OrganizationProfileViewPagerAdapter(this)
+        TabLayoutMediator(binding.tabLayout, binding.viewPagerHistory) { tab, position ->
+            tab.text = when (position) {
+                0 -> "All Cases"
+                1 -> "Closed Cases"
+                2 -> "Pending Cases"
+                else -> null
+            }
+        }.attach()
+    }
+
+    private fun setupClickListeners() {
         binding.btnSettings.setOnClickListener {
-            val profileOptionsFragment = ProfileOptionsFragment()
-            profileOptionsFragment.show(supportFragmentManager, profileOptionsFragment.tag)
+            ProfileOptionsFragment().show(supportFragmentManager, "ProfileOptionsFragment")
         }
-
-        // Set up change cover photo button click listener
         binding.btnChangePhoto.setOnClickListener {
-            val coverPhotoOptionsFragment = CoverPhotoOptionsFragment()
-            coverPhotoOptionsFragment.show(supportFragmentManager, coverPhotoOptionsFragment.tag)
+            CoverPhotoOptionsFragment().show(supportFragmentManager, "CoverPhotoOptionsFragment")
         }
-
-        // Set up edit profile icon click listener
         binding.ivEditIcon.setOnClickListener {
             val intent = Intent(this, EditOrganizationProfileActivity::class.java)
             startActivity(intent)
         }
     }
 
-    override fun onViewCoverClicked() {
-        // TODO: Implement view cover photo logic
-    }
+    override fun onViewCoverClicked() { /* TODO */ }
 
     override fun onUploadPhotoClicked() {
         openGallery()
     }
 
-    override fun onRepositionCoverClicked() {
-        // This will now be handled by the onUploadPhotoClicked -> adjustPhotoLauncher flow
-        // You can also choose to launch AdjustPhotoActivity with the current cover photo URI
-    }
+    override fun onRepositionCoverClicked() { /* TODO */ }
 
-    override fun onRemoveCoverClicked() {
-        // TODO: Implement remove cover photo logic
-    }
+    override fun onRemoveCoverClicked() { /* TODO */ }
 
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.type = "image/*"
+        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
         pickImageLauncher.launch(intent)
     }
 
     private fun uploadCroppedImage(uri: Uri) {
-        // TODO: Implement your logic to upload the cropped image to your server.
-        // You can use a library like Retrofit for this.
-        // For now, we'll just display the cropped image.
+        // TODO: Implement logic to upload the cropped image to your server.
     }
 }

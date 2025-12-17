@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".features.casereport.ui.CaseReportFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/light_gray"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Case Report"
+            app:titleCentered="true" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Case Details Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/light_gray"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:text="@string/case_details"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Who is reporting -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/who_is_reporting"
+                        android:textColorHint="@color/black"
+                        app:startIconDrawable="@drawable/ic_person_outline"
+                        app:boxBackgroundColor="@color/light_gray">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/actv_reporter"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            android:paddingStart="40dp"
+                            tools:ignore="RtlSymmetry"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Row: Type of Assault & Where -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/type_of_assault"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_chat_bubble_outline"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_assault_type"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="40dp"
+                                tools:ignore="RtlSymmetry"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/where"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_location_on_outline"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_location"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="40dp"
+                                tools:ignore="RtlSymmetry"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Description -->
+                    <EditText
+                        android:id="@+id/et_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:background="@color/white"
+                        android:hint="@string/briefly_describe_what_happened"
+                        android:textColorHint="@color/black"
+                        android:gravity="top|start"
+                        android:padding="12dp"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:layout_marginTop="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="4dp">
+                        <TextView
+                            android:id="@+id/tv_char_count"
+                            android:text="@string/_0_200"
+                            android:textColor="@color/black"
+                            android:textSize="12sp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"/>
+                        <TextView
+                            android:text="@string/compulsory_fields"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary_color2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Victim Details Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/victimDetailsCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/light_gray"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:id="@+id/victimDetailsContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:text="@string/victim_details"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Row 1 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/age_range"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_cake_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_victim_age"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/employment_status"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_briefcase_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_employment"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textSize="12sp"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="40dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Row 2 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/gender"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_gender_male_female"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_victim_gender"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Vulnerability Status*"
+                            android:textSize="5sp"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_accessibility"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_vulnerability"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textSize="12sp"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="40dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:text="@string/compulsory_fields"
+                        android:textSize="12sp"
+                        android:textColor="@color/primary_color2"
+                        android:textStyle="bold"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Assailant Details Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/light_gray"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:text="Assailant Details"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Single Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.2"
+                            android:hint="@string/no_of_people"
+                            app:startIconDrawable="@drawable/ic_group_add"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="2dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_assailant_count"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry"
+                                android:textSize="11sp"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/gender"
+                            app:startIconDrawable="@drawable/ic_gender_male_female"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="2dp"
+                            android:layout_marginEnd="2dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_assailant_gender"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry"
+                                android:textSize="11sp"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/age_range"
+                            app:startIconDrawable="@drawable/ic_cake_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="2dp">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_assailant_age"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                android:textSize="11sp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:text="@string/compulsory_fields"
+                        android:textSize="12sp"
+                        android:textColor="@color/primary_color2"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <CheckBox
+                android:id="@+id/cb_declaration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/decla_ra_tion" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_report_case"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                app:icon="@drawable/ic_report"
+                app:iconGravity="textStart"
+                android:text="@string/report_case"
+                android:enabled="false"
+                app:backgroundTint="@color/button_tint_color"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

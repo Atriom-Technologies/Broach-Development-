@@ -10,6 +10,7 @@ android {
         buildFeatures {
             viewBinding = true
             compose = true
+            dataBinding = true
         }
 
     namespace = "com.example.broach"
@@ -44,6 +45,11 @@ android {
 }
 
 dependencies {
+    val nav_version = "2.9.6"
+
+    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
+    implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
+
     //Glide library
     implementation(libs.glide)
     kapt(libs.glide.compiler)

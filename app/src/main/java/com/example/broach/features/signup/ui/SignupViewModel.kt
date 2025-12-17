@@ -2,9 +2,7 @@ package com.example.broach.features.signup.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.broach.core.result.Result
 import com.example.broach.features.signup.data.SignupRepository
-import com.example.broach.network.OrganizationSignupRequest
 import com.example.broach.network.SignupRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,24 +13,19 @@ class SignupViewModel(private val repository: SignupRepository) : ViewModel() {
     private val _uiState = MutableStateFlow<SignupUiState>(SignupUiState.Idle)
     val uiState: StateFlow<SignupUiState> = _uiState
 
-    fun signupOrganization(request: OrganizationSignupRequest) {
+    fun signup(name: String, email: String, password: String, userType: String) {
         viewModelScope.launch {
             _uiState.value = SignupUiState.Loading
-            val result = repository.signupOrganization(request)
-            _uiState.value = when (result) {
-                is Result.Success -> SignupUiState.Success(result.data)
-                is Result.Error -> SignupUiState.Error(result.exception.message ?: "An unknown error occurred")
-            }
-        }
-    }
+            val signupRequest = SignupRequest(name, email, password, userType)
+            val result = repository.signup(signupRequest)
 
-    fun signupReporter(request: SignupRequest) {
-        viewModelScope.launch {
-            _uiState.value = SignupUiState.Loading
-            val result = repository.signupReporter(request)
-            _uiState.value = when (result) {
-                is Result.Success -> SignupUiState.Success(result.data)
-                is Result.Error -> SignupUiState.Error(result.exception.message ?: "An unknown error occurred")
+            result.onSuccess { signupResponse ->
+                _uiState.value = SignupUiState.Success(
+                    userId = signupResponse.userId,
+                    authToken = signupResponse.authToken
+                )
+            }.onFailure { exception ->
+                _uiState.value = SignupUiState.Error(exception.message ?: "An unknown error occurred")
             }
         }
     }

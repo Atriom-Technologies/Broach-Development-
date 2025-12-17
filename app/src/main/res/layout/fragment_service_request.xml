@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".features.servicerequest.ui.ServiceRequestFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/light_gray"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Service Request"
+            app:titleCentered="true" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Bio Details Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/light_gray"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:text="@string/bio_details"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Row 1: Who needs service & Age range -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/who_needs_this_service"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_person_outline"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_who_needs_service"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="match_parent"
+                                android:paddingStart="35dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/age_range_layout"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/age_range"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_cake_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_age_range"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Row 2: Phone No. & Email Address -->
+                    <LinearLayout
+                        android:id="@+id/contactInfoLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/phone_no"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_phone"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_phone_no"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="phone"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/email_address_re"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_email"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_email_address"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textEmailAddress"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:text="@string/compulsory_fields"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color2"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Service Details Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/light_gray"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:text="Service Details"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Row 1: Type of Service & Marital Status -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/type_of_service"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_service_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_type_of_service"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/marital_status"
+                            android.textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_marital_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_marital_status"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Row 2: Work Status & Vulnerability Status -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/work_status"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_briefcase_icon"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginEnd="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_work_status"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android.inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="48dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/vulnerability_status"
+                            android:textColorHint="@color/black"
+                            app:startIconDrawable="@drawable/ic_accessibility"
+                            app:boxBackgroundColor="@color/light_gray"
+                            android:layout_marginStart="4dp">
+                            <AutoCompleteTextView
+                                android:id="@+id/actv_vulnerability_status"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:dropDownWidth="wrap_content"
+                                android:paddingStart="40dp"
+                                tools:ignore="RtlSymmetry" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- Description -->
+                    <EditText
+                        android:id="@+id/et_service_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:background="@color/white"
+                        android:hint="@string/briefly"
+                        android:textColorHint="@color/black"
+                        android:gravity="top|start"
+                        android:padding="12dp"
+                        android:textSize="14sp"
+                        android:layout_marginTop="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="4dp">
+                        <TextView
+                            android:id="@+id/tv_char_count"
+                            android:text="@string/_0_200"
+                            android:textColor="@color/black"
+                            android:textSize="12sp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"/>
+                        <TextView
+                            android:text="@string/compulsory_fields"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary_color2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <CheckBox
+                android:id="@+id/cb_declaration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/decla_ra_tion" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_submit_request"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/submit_request"
+                android:enabled="false"
+                app:backgroundTint="@color/button_tint_color"
+                app:icon="@drawable/ic_request"
+                app:iconGravity="textStart" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
