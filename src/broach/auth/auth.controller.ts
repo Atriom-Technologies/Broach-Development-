@@ -83,16 +83,21 @@ export class AuthController {
     )
     @ApiConsumes('multipart/form-data')
     @Patch('register')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserType.requester_reporter)
     async completeRequesterProfile(
       @Body() dto: RequesterCompleteProfileDto,
       @UploadedFile() file: Express.Multer.File,
+      @Req() req: RequestWithUserPayload
     ) {
       const userType =  UserType.requester_reporter
+      const userId = req.user.id
 
       const result = await this.authService.completeRequesterProfile(
         dto,
         userType,
         file,
+        userId,
       );
       return {
         name: result.name,
@@ -138,13 +143,15 @@ export class AuthController {
     async completeSupportOrgProfile(
       @Body() dto: CompleteSupportOrgProfileDto,
       @UploadedFile() file: Express.Multer.File,
+      @Req() req: RequestWithUserPayload
     ) {
       const userType =  UserType.support_organization
-
+      const userId = req.user.id
       const result = await this.authService.completeSupportOrgProfile(
         dto,
         userType,
         file,
+        userId,
       );
       return {
         name: result.name,
