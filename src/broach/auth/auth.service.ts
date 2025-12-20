@@ -461,24 +461,30 @@ export class AuthService {
     //   user: { connect: { id } }, // reconnect user in create
     // }
 
-    this.logger.debug(`Profile completed for user: ${user.id}`);
-
+ 
+          const exists = await this.prisma.supportOrgProfile.findUnique({
+        where: { userId: user.id },
+      });
+      
+      if (!exists) {
+        throw new BadRequestException(
+          'Support organization profile was not initialized during registration',
+        );
+      }
     //Update the requester profile data
     const profile = await this.safeExecutor.run(
       () =>
-        this.prisma.supportOrgProfile.upsert({
+        this.prisma.supportOrgProfile.update({
           where: { userId: user.id },
-          update: data,
-          create: {
-            userId: user.id,
-            ...data,
-          },
+          data,
           include: {
             supportOrgSector: true,
           },
         }),
       `Failed to update profile for user: ${user.id}`,
     );
+
+     this.logger.debug(`Profile completed for user: ${user.id}`);
 
     return {
       name: profile.organizationName,
