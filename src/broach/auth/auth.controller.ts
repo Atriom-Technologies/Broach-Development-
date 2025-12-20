@@ -98,8 +98,8 @@ export class AuthController {
       const result = await this.authService.completeRequesterProfile(
         dto,
         userType,
-        file,
         userId,
+        file,
       );
       return {
         name: result.name,
@@ -154,8 +154,8 @@ export class AuthController {
       const result = await this.authService.completeSupportOrgProfile(
         dto,
         userType,
-        file,
         userId,
+        file,
       );
       return {
         name: result.name,
