@@ -70,13 +70,6 @@ export class RegisterReqRepDto {
 
 export class RequesterCompleteProfileDto {
   @ApiProperty({
-    description: 'User ID',
-  })
-  @IsUUID()
-  userId: string;
-
-
-  @ApiProperty({
     description: 'Gender of the user',
     example: 'male',
   })
