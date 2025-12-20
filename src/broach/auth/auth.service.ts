@@ -140,6 +140,7 @@ export class AuthService {
     dto: RequesterCompleteProfileDto,
     userType: UserType,
     file?: Express.Multer.File,
+    userId,
   ) {
     // Check if user is reporter_requester before proceeding
     if (userType !== 'requester_reporter') {
@@ -149,18 +150,18 @@ export class AuthService {
       );
     }
     // Fetch User by Id to check if user exists
-    const id = dto.userId;
+    //const id = dto.userId;
     const user = await this.safeExecutor.run(
       () =>
         this.prisma.user.findUnique({
-          where: { id },
+          where: { id: userId },
         }),
-      `Failed to fetch user id ${id}`,
+      `Failed to fetch user id ${userId}`,
     );
 
     // Check if user exists
     if (!user) {
-      this.logger.warn(`No record for User: ${id}`);
+      this.logger.warn(`No record for User: ${userId}`);
       throw new BadRequestException(`No record found`);
     }
 
@@ -175,7 +176,7 @@ export class AuthService {
             .upload_stream(
               {
                 folder: 'broach/profiles',
-                public_id: `${id}-profile`,
+                public_id: `${user.id}-profile`,
                 overwrite: true,
                 resource_type: 'image',
               },
@@ -363,6 +364,7 @@ export class AuthService {
     dto: CompleteSupportOrgProfileDto,
     userType: UserType,
     file?: Express.Multer.File,
+    userId
   ) {
     // Check if user is reporter_requester before proceeding
     if (userType !== UserType.support_organization) {
@@ -372,19 +374,19 @@ export class AuthService {
       );
     }
     // Fetch User by Id to check if user exists
-    const id = dto.userId;
+    // const id = dto.userId;
     const user = await this.safeExecutor.run(
       () =>
         this.prisma.user.findUnique({
-          where: { id },
+          where: { id: userId },
         }),
-      `Failed to fetch user id ${id}`,
+      `Failed to fetch user id ${userId}`,
     );
 
     // Check if user exists
     if (!user) {
-      this.logger.warn(`No record for User: ${id}`);
-      throw new BadRequestException(`ID: ${id} not found`);
+      this.logger.warn(`No record for User: ${userId}`);
+      throw new BadRequestException(`ID: ${userId} not found`);
     }
 
     //  Handle profile picture
