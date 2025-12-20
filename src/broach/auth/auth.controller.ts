@@ -18,6 +18,8 @@ import { ApiTags, ApiResponse, ApiBearerAuth, ApiConsumes } from '@nestjs/swagge
 import { AuthService } from './auth.service';
 import { RegisterReqRepDto, RequesterCompleteProfileDto } from './dto/requestDtos/register-req-rep.dto';
 import { CompleteSupportOrgProfileDto, RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
+import { RolesGuard } from 'src/broach/auth/guards/role.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserType } from '@prisma/client';
 import { LoginDto } from './dto/requestDtos/login.dto';
 import { Ip } from 'src/common/decorators/ip.decorator';
