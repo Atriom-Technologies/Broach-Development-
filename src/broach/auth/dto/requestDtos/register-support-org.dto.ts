@@ -120,11 +120,11 @@ export class RegisterSupportOrgDto {
 
 
 export class CompleteSupportOrgProfileDto {
-  @ApiProperty({
+/*   @ApiProperty({
     description: 'User ID',
   })
   @IsUUID()
-  userId: string;
+  userId: string; */
 
 // Sector Id of the organizations selected.
   @ApiProperty({
