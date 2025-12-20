@@ -466,7 +466,7 @@ export class AuthService {
     //Update the requester profile data
     const profile = await this.safeExecutor.run(
       () =>
-        this.prisma.supportOrgProfile.update({
+        this.prisma.supportOrgProfile.upsert({
           where: { userId: user.id },
           data,
           include: {
