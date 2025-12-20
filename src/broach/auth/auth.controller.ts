@@ -140,6 +140,8 @@ export class AuthController {
     )
     @ApiConsumes('multipart/form-data')
     @Patch('register/organization')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserType.support_organization)
     async completeSupportOrgProfile(
       @Body() dto: CompleteSupportOrgProfileDto,
       @UploadedFile() file: Express.Multer.File,
