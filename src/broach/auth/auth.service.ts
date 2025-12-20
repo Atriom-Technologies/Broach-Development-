@@ -470,8 +470,9 @@ export class AuthService {
           where: { userId: user.id },
           update: data,
           create: {
-            userId: user.id, 
+            userId: user.id,
             ...data,
+          },
           include: {
             supportOrgSector: true,
           },
