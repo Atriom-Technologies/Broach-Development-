@@ -469,6 +469,9 @@ export class AuthService {
         this.prisma.supportOrgProfile.upsert({
           where: { userId: user.id },
           update: data,
+          create: {
+            userId: user.id, 
+            ...data,
           include: {
             supportOrgSector: true,
           },
