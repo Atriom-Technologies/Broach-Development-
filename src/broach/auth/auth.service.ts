@@ -139,8 +139,8 @@ export class AuthService {
   async completeRequesterProfile(
     dto: RequesterCompleteProfileDto,
     userType: UserType,
-    file?: Express.Multer.File,
     userId,
+    file?: Express.Multer.File,
   ) {
     // Check if user is reporter_requester before proceeding
     if (userType !== 'requester_reporter') {
@@ -363,8 +363,8 @@ export class AuthService {
   async completeSupportOrgProfile(
     dto: CompleteSupportOrgProfileDto,
     userType: UserType,
+    userId,
     file?: Express.Multer.File,
-    userId
   ) {
     // Check if user is reporter_requester before proceeding
     if (userType !== UserType.support_organization) {
