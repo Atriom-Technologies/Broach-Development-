@@ -14,7 +14,7 @@ import { RequesterProfileModule } from './broach/profiles/requester-profile/requ
 import { OrganizationProfileModule } from './broach/profiles/organization-profile/organization-profile.module';
 import * as Joi from 'joi';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-// import { NotificationModule } from './broach/notification/notification.module';
+import { NotificationModule } from './broach/notification/notification.module';
 import { MetaService } from './meta/meta.service';
 import { MetaModule } from './meta/meta.module';
 
@@ -48,7 +48,7 @@ import { MetaModule } from './meta/meta.module';
     OrganizationProfileModule,
     EventEmitterModule.forRoot(),
     MetaModule,
-    // NotificationModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

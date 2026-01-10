@@ -38,3 +38,28 @@ export function parseEnum<T extends Record<string, string>>(
     label: overrides?.[value] ?? humanize(value),
   }));
 }
+
+export function toProperCaseName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+export function humanizeText(value: string): string {
+  return value
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function formatDateHuman(date: Date): string {
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}

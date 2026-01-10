@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsString,
@@ -37,12 +37,13 @@ export class RegisterReqRepDto {
   @ApiProperty({
     description: 'Phone number of the user',
     example: '+2348012345678 or 08012345678',
-  }) 
+  })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
   @Matches(/^(?:0\d{10}|\+234\d{10})$/, {
-    message: 'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
+    message:
+      'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
   })
   phone: string;
 
@@ -67,13 +68,17 @@ export class RegisterReqRepDto {
   confirmPassword: string;
 }
 
-
 export class RequesterCompleteProfileDto {
+  @ApiProperty({
+    description: 'User ID',
+  })
+  @IsUUID()
+  userId: string;
+
   @ApiProperty({
     description: 'Gender of the user',
     example: 'male',
   })
-
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
@@ -82,7 +87,7 @@ export class RequesterCompleteProfileDto {
 
   @ApiProperty({
     description: 'Date of birth of the user',
-    example: '1987-05-10', 
+    example: '1987-05-10',
   })
   @IsDateString()
   dateOfBirth: string;
@@ -97,13 +102,13 @@ export class RequesterCompleteProfileDto {
   @IsString()
   occupation: string;
 
-    @ApiProperty({ required: false })
-    @IsOptional()
-    @Transform(({ value }: { value: string }) =>
-      typeof value === 'string' ? value.trim() : value,
-    )
-    @IsString()
-    location?: string;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Transform(({ value }: { value: string }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsString()
+  location?: string;
 
   // @ApiProperty({description: 'Covert or URL'})
   // @IsOptional()
