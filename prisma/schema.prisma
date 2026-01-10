@@ -99,13 +99,8 @@ model User {
   supportOrgProfile        SupportOrgProfile?
   passwordReset            PasswordReset?
 
-  // Relation to child  (Notification) model
-  sentNotifications         Notification[]   @relation("SentNotifications")
-  receivedNotifications     Notification[]   @relation("ReceivedNotifications")
-  // Relation to child table (assignment)
-  AssignedOrganization      Assignment[]     @relation("AssignedOrganization")
-  AssignedRequesterReporter Assignment[]     @relation("AssignedRequesterReporter")
-  //Relation to child model/tables
+
+  //Relation 
   refreshSessions           RefreshSession[] //  one-to-many relation
 
   @@index([userType])
@@ -126,7 +121,7 @@ model RequesterReporterProfile {
 
   userId String @unique
 
-  // Relationt to child model/table
+  // Relation
   cases           CaseDetails[] // A profile can report multiple cases
   serviceRequests ServiceRequests[] // A profile can request multiple services
 
@@ -461,62 +456,54 @@ model PasswordReset {
 }
 
 // ============================================================================NOTIFICATION MODEL ================================================================
-model Notification {
-  id           String             @id // uses cuid() V2 to improve performance. search about it to know more
-  type         EngagementType
-  relatedId    String // Case/report ID or serviceRequest Id
-  senderId     String? // reporter or requester of case
-  receiverId   String? // Organization Id
-  assignmentId String?
-  message      String?            @db.Text
-  status       NotificationStatus @default(pending)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  readAt       DateTime?
-
-  sender     User?       @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
-  receiver   User?       @relation("ReceivedNotifications", fields: [receiverId], references: [id], onDelete: SetNull)
-  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  @@index([type])
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([relatedId])
-  @@index([id])
+enum NotificationOwnerType {
+  ORGANIZATION
+  REPORTER
 }
 
-enum EngagementType {
+enum NotificationSourceType {
   CASE_REPORT
   SERVICE_REQUEST
 }
 
 enum NotificationStatus {
-  pending
-  in_discussion
-  closed
+  PENDING
+  IN_DISCUSSION
+  CLOSED
 }
+
+model Notification {
+  id         String   @id @default(uuid())
+
+  ownerType  NotificationOwnerType // ORG | REPORTER
+  ownerId    String
+
+  sourceType NotificationSourceType // CASE_REPORT | SERVICE_REQUEST
+  sourceId   String
+
+  status     NotificationStatus // PENDING | IN_DISCUSSION | CLOSED
+
+  data       Json
+
+  createdAt  DateTime @default(now())
+  closedAt   DateTime?
+}
+
 
 //==========================================================================================================================================================================
+model ChatRoom {
+  id         String   @id @default(uuid())
+  sourceType NotificationSourceType // Case_Report | Service Request
+  sourceId   String
+
+  orgJoined       Boolean @default(false)
+  reporterJoined  Boolean @default(false)
+
+  createdAt  DateTime @default(now())
+}
+
 
 //=========================================An ASSIGNMENT TABLE THAT RECORDS WHICH ORGANIZATION HANDLES A CASE OR SERVICE=====================================================
-model Assignment {
-  id             String             @id @default(uuid())
-  type           EngagementType
-  relatedId      String
-  organizationId String?
-  reporterId     String?
-  status         NotificationStatus @default(in_discussion)
-  assignedAt     DateTime           @default(now())
-  closedAt       DateTime?
 
-  organization User?          @relation("AssignedOrganization", fields: [organizationId], references: [id], onDelete: SetNull)
-  reporter     User?          @relation("AssignedRequesterReporter", fields: [reporterId], references: [id], onDelete: SetNull)
-  notification Notification[] // back-link for traceability
-
-  @@index([relatedId, type])
-  @@index([organizationId])
-  @@index([reporterId])
-  @@index([id])
-}
 
 // =======================================================================================================================================================

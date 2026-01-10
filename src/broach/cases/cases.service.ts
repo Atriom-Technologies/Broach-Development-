@@ -5,65 +5,55 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SafeExecutor } from 'src/utils/safe-execute';
-import { EngagementType, NotificationStatus, UserType } from '@prisma/client';
 import { CreateCaseDto } from './dto/create-case.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, UserType } from '@prisma/client';
 import { CaseRepository } from './repository/case.repository';
 import { PaginationDto } from './dto/pagination.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { NotificationService } from '../notification/notification.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-
 @Injectable()
 export class CasesService {
   constructor(
     private readonly repo: CaseRepository,
     private readonly safeExecutor: SafeExecutor,
-    private readonly eventEmitter: EventEmitter2,
     private readonly notificationService: NotificationService,
-    private readonly prisma: PrismaService,
   ) {}
 
   // Submit a case
-  async createCase(dto: CreateCaseDto, id: string) {
-    // Check if usertype is requester/reporter before allowing access
-
+  async createCase(dto: CreateCaseDto, userId: string) {
+    // Fetch user and check if user is of type requester_reporter
     const user = await this.safeExecutor.run(
-      () => this.repo.findUserById(id),
-      `Failed to fetch user details: ${id}`,
+      () => this.repo.findUserById(userId),
+      `Failed to fetch user details: ${userId}`,
     );
 
-    if (user?.userType !== UserType.requester_reporter) {
-      throw new ForbiddenException('Not authorized to Submit cases');
+    if (!user || user.userType !== UserType.requester_reporter) {
+      throw new ForbiddenException('Not authorized to submit cases');
     }
 
-    // Check if the requesterProfileId exists
+    // Fetch requester profile
     const profile = await this.safeExecutor.run(
-      () => this.repo.findRequesterProfileByUserId(id),
-
-      `Failed to fetch Requester id: ${id}`,
+      () => this.repo.findRequesterProfileByUserId(userId),
+      `Failed to fetch Requester id: ${userId}`,
     );
 
     // If profile not found, return an error message
     if (!profile)
       throw new BadRequestException(
-        'Requester profile not found. Please complete your profile before submitting a case.',
+        'Please complete your profile before submitting a case.',
       );
 
-    // Check if case type ID from front end is valid. Case type would be selected and just the id would be sent
-    // Note: Type of assault is also referred to as case type in the database
+    // Check if case type ID from front end is valid. Case type id is expected to be sent from client
+    // Note: Type of assault labeled in UI form is regarded as caseType in the database
     const caseType = await this.safeExecutor.run(
       () => this.repo.findCaseTypeById(dto.typeOfAssaultId),
       `Failed to fetch Case Id: ${dto.typeOfAssaultId}`,
     );
     if (!caseType)
-      throw new BadRequestException(
-        `Invalid case type. Please select a valid case type`,
-      );
+      throw new BadRequestException(`Please select a valid case type`);
 
     // Validate vulnerabilityStatus (only if victimDetails is provided)
-    // Check if vulnerable status ID from front end is valid. vulnerable status would be selected and just the id would be sent
+    // Check if vulnerable status ID from front end is valid. vulnerable status id is expected to be sent
 
     const vulnerabilityStatusId = dto.victimDetails?.vulnerabilityStatusId;
     if (vulnerabilityStatusId) {
@@ -84,66 +74,51 @@ export class CasesService {
      * Takes the function to be executed in the try block and error message for the catch block
      */
     return this.safeExecutor.run(async () => {
-      return this.prisma.$transaction(async (tx) => {
-        // Build the data to be created
-        const data: Prisma.CaseDetailsCreateInput = {
-          requesterReporterProfile: { connect: { id: profile.id } },
-          caseType: { connect: { id: caseType.id } },
-          whoIsReporting: dto.whoIsReporting,
-          location: dto.location,
-          description: dto.description,
-          infoConfirmed: dto.infoConfirmed,
+      // Build the data to be created
+      const data: Prisma.CaseDetailsCreateInput = {
+        requesterReporterProfile: { connect: { id: profile.id } },
+        caseType: { connect: { id: caseType.id } },
+        whoIsReporting: dto.whoIsReporting,
+        location: dto.location,
+        description: dto.description,
+        infoConfirmed: dto.infoConfirmed,
 
-          ...(dto.victimDetails && {
-            victimDetails: {
-              create: {
-                ageRange: dto.victimDetails.ageRange,
-                employmentStatus: dto.victimDetails.employmentStatus,
-                gender: dto.victimDetails.gender,
-                vulnerabilityStatusId: dto.victimDetails.vulnerabilityStatusId,
-              },
-            },
-          }),
-
-          ...(dto.assailantDetails && {
-            assailantDetails: {
-              create: {
-                noOfAssailants: dto.assailantDetails.noOfAssailants,
-                gender: dto.assailantDetails.gender,
-                ageRange: dto.assailantDetails.ageRange,
-              },
-            },
-          }),
-        };
-
-        // Create case via repo
-        const caseRecord = await this.repo.createCase(
-          {
-            data,
-            include: {
-              requesterReporterProfile: { include: { user: true } },
-              caseType: true,
-              victimDetails: true,
-              assailantDetails: true,
+        ...(dto.victimDetails && {
+          victimDetails: {
+            create: {
+              ageRange: dto.victimDetails.ageRange,
+              employmentStatus: dto.victimDetails.employmentStatus,
+              gender: dto.victimDetails.gender,
+              vulnerabilityStatusId: dto.victimDetails.vulnerabilityStatusId,
             },
           },
-          tx,
-        );
+        }),
 
-        // Create notification for all organizations atomically... Bros browse about am if you no know. me sef no sabi am..
-        const count =
-          await this.notificationService.createNotificationForAllOrgs(
-            {
-              senderId: user.id,
-              relatedId: caseRecord.id,
-              type: EngagementType.CASE_REPORT,
-              message: `Hello! You've got New Case Report from ${user.requesterReporterProfile?.fullName}`,
-              status: NotificationStatus.pending,
+        ...(dto.assailantDetails && {
+          assailantDetails: {
+            create: {
+              noOfAssailants: dto.assailantDetails.noOfAssailants,
+              gender: dto.assailantDetails.gender,
+              ageRange: dto.assailantDetails.ageRange,
             },
-            tx,
-          );
+          },
+        }),
+      };
+
+      // Create case via repo
+      const caseDetails = await this.repo.createCase({
+        data,
+        include: {
+          requesterReporterProfile: { include: { user: true } },
+          caseType: true,
+          victimDetails: true,
+          assailantDetails: true,
+        },
       });
-    }, ` Failed to Execute transactions for case creation and notification`);
+
+      // Call the notification service immediately after case creation
+      await this.notificationService.notifyNewCase(caseDetails, user.id);
+    }, `Report Submission Failed`);
   }
 
   async getCaseById(id: string) {
