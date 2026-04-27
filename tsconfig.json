@@ -12,7 +12,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     // "baseUrl": "./",
-    "rootDir": "./",
+    "rootDir": "./src",
     "paths": {
       "src/*": ["./src/*"]
     },
@@ -23,5 +23,14 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "scripts",
+    "**/*.spec.ts",
+    "**/*.e2e-spec.ts"
+  ]
 }
