@@ -463,16 +463,15 @@ export class AuthService {
     //   user: { connect: { id } }, // reconnect user in create
     // }
 
- 
-          const exists = await this.prisma.supportOrgProfile.findUnique({
-        where: { userId: user.id },
-      });
-      
-      if (!exists) {
-        throw new BadRequestException(
-          'Support organization profile was not initialized during registration',
-        );
-      }
+    const exists = await this.prisma.supportOrgProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!exists) {
+      throw new BadRequestException(
+        'Support organization profile was not initialized during registration',
+      );
+    }
     //Update the requester profile data
     const profile = await this.safeExecutor.run(
       () =>
@@ -486,7 +485,7 @@ export class AuthService {
       `Failed to update profile for user: ${user.id}`,
     );
 
-     this.logger.debug(`Profile completed for user: ${user.id}`);
+    this.logger.debug(`Profile completed for user: ${user.id}`);
 
     return {
       name: profile.organizationName,
@@ -565,7 +564,6 @@ export class AuthService {
       // --- Return user info + tokens ---
       return {
         accessToken,
-        refreshToken: refreshTokenRaw,
         sessionId: session.id,
         isProfileDetailsSubmitted,
         id: user.id,
@@ -581,7 +579,8 @@ export class AuthService {
       };
     } catch (err) {
       // Only unexpected errors are logged
-      this.logger.error(`Unexpected login error for ${email}`, err.stack);
+      const message = err instanceof Error ? err.message : 'unknown error';
+      this.logger.error(`Unexpected login error for ${email}`, message);
       throw new InternalServerErrorException(
         'Login failed due to system error',
       );

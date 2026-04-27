@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
-import * as compression from 'compression';
+import compression = require('compression');
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -14,7 +14,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://broach-development-profile.onrender.com',
-      'http://localhost:3000'
+      'http://localhost:3000',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -34,7 +34,6 @@ async function bootstrap() {
    * max: 100, limits each IP with maximum of 100 requests per window}))
    */
 
-
   // @Controller()
   // export class AppController {
   //   @Get()
@@ -48,7 +47,6 @@ async function bootstrap() {
   //   }
   // }
   // app.useGlobalFilters(new GlobalExceptionFilter(app.get(AppLogger)));
-
 
   // Global validation pipe
   app.useGlobalPipes(

@@ -1,7 +1,17 @@
-import { Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { RequestWithUserPayload } from '../auth/interfaces/jwt-payload.interface';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { NotificationOwnerType } from '@prisma/client';
+import { SendMessageDto } from './dto/send-message.dto';
 
 @Controller('notifications')
 export class NotificationController {
@@ -49,4 +59,26 @@ export class NotificationController {
     const userId = req.user.id;
     return this.notificationService.endConversation(notificationId, userId);
   }
+
+  // // Controller method to get chat history for a specific chat room
+  // @Get('chat/:chatRoomId/messages')
+  // @UseGuards(JwtAuthGuard)
+  // async getMessages(@Param('chatRoomId') chatRoomId: string) {
+  //   return this.notificationService.getChatHistory(chatRoomId);
+  // }
+
+  // @Post('chat/:chatRoomId/send')
+  // @UseGuards(JwtAuthGuard)
+  // async postMessage(
+  //   @Param('chatRoomId') chatRoomId: string,
+  //   @Req() req: RequestWithUserPayload,
+  //   @Body() dto: SendMessageDto, // Use the DTO here
+  // ) {
+  //   return this.notificationService.sendMessage(
+  //     chatRoomId,
+  //     req.user.id,
+  //     dto.senderType,
+  //     dto.content,
+  //   );
+  // }
 }

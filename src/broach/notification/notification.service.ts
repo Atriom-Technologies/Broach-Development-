@@ -18,10 +18,14 @@ import {
   humanizeText,
   toProperCaseName,
 } from 'src/utils/formatString';
+import { ConversationService } from '../conversation/conversation.service';
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly conversationService: ConversationService,
+  ) {}
 
   // Notify new case
   async notifyNewCase(caseDetails: CaseDetails, userId: string) {
@@ -92,49 +96,50 @@ export class NotificationService {
   }
 
   // Contact Reporter action
-  async contactReporter(notificationId: string, actionId: string) {
-    // Find the notification
+  async contactReporter(notificationId: string, userId: string) {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
     });
+
     if (!notification) throw new NotFoundException('Notification not found');
 
-    // Make sure only ORganization can contact reporter
-    if (notification.ownerType !== NotificationOwnerType.ORGANIZATION)
+    if (notification.ownerType !== NotificationOwnerType.ORGANIZATION) {
       throw new BadRequestException('Only Organizations can contact reporter');
+    }
 
-    // Ensure status is PENDING
     if (notification.status !== NotificationStatus.PENDING) {
       throw new BadRequestException('Conversation already started');
     }
 
-    // Check if chatROom already exists
-    let chatRoom = await this.prisma.chatRoom.findFirst({
-      where: {
-        sourceType: notification.sourceType,
-        sourceId: notification.sourceId,
+    // fetch case + reporter (source of truth)
+    const caseDetails = await this.prisma.caseDetails.findUnique({
+      where: { id: notification.sourceId },
+      include: {
+        requesterReporterProfile: true,
       },
     });
 
-    // Create chat Room if it does not exist
-    if (!chatRoom) {
-      chatRoom = await this.prisma.chatRoom.create({
-        data: {
-          sourceType: notification.sourceType,
-          sourceId: notification.sourceId,
-          orgJoined: true,
-          reporterJoined: false,
-        },
-      });
-    } else if (!chatRoom.orgJoined) {
-      // Ensuring organization is marked as joined
-      chatRoom = await this.prisma.chatRoom.update({
-        where: { id: chatRoom.id },
-        data: { orgJoined: true },
-      });
+    if (!caseDetails?.requesterReporterProfile) {
+      throw new Error('Reporter not found');
     }
 
-    // Update all Orgs noitification flags for this source
+    // 1. CREATE CHAT ROOM via ConversationService
+    const chatRoom = await this.conversationService.createChatRoom({
+      sourceType: notification.sourceType,
+      sourceId: notification.sourceId,
+      reporterId: caseDetails.requesterReporterProfile.userId,
+      organizationId: userId,
+    });
+
+    // 2. ORGANIZATION JOINS via ConversationService
+    await this.conversationService.joinConversation({
+      sourceType: notification.sourceType,
+      sourceId: notification.sourceId,
+      userId,
+      role: NotificationOwnerType.ORGANIZATION,
+    });
+
+    // 3. UPDATE NOTIFICATIONS ONLY (state responsibility)
     await this.prisma.notification.updateMany({
       where: {
         sourceType: notification.sourceType,
@@ -146,34 +151,11 @@ export class NotificationService {
       },
     });
 
-    // 7. Create reporter notification (FIRST TIME)
-    const caseDetails = await this.prisma.caseDetails.findUnique({
-      where: { id: notification.sourceId },
-      include: {
-        requesterReporterProfile: { include: { user: true } },
-      },
-    });
-
-    // Ensure case details exist
-    if (!caseDetails) {
-      throw new Error('Case not found');
-    }
-
-    // Fetch reporter profile
-    const reporterProfile =
-      await this.prisma.requesterReporterProfile.findUnique({
-        where: { userId: caseDetails.requesterReporterProfile?.userId },
-      });
-
-    // Ensure reporter profile exists
-    if (!reporterProfile) {
-      throw new Error('Reporter profile not found');
-    }
-    // Create notification for the Reporter
+    // 4. Create reporter notification
     await this.prisma.notification.create({
       data: {
         ownerType: NotificationOwnerType.REPORTER,
-        ownerId: reporterProfile.userId,
+        ownerId: caseDetails.requesterReporterProfile.userId,
         sourceType: NotificationSourceType.CASE_REPORT,
         sourceId: caseDetails.id,
         status: NotificationStatus.IN_DISCUSSION,
@@ -189,46 +171,33 @@ export class NotificationService {
       message: 'Chat started',
     };
   }
-
   // Response to conversation initiated by organization
-  async respondToConversation(notificationId: string, actionId: string) {
-    // Find the notification
+  async respondToConversation(notificationId: string, userId: string) {
     const notification = await this.prisma.notification.findUnique({
       where: { id: notificationId },
     });
 
-    if (!notification) throw new NotFoundException('Notification not found');
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
 
-    // Make sure only reporter can respond
-    if (notification.ownerType !== NotificationOwnerType.REPORTER)
-      throw new BadRequestException('Only Reporter can respond');
+    if (notification.ownerType !== NotificationOwnerType.REPORTER) {
+      throw new BadRequestException('Only reporter can respond');
+    }
 
-    // Ensure status is IN_DISCUSSION
     if (notification.status !== NotificationStatus.IN_DISCUSSION) {
       throw new BadRequestException('Conversation not active');
     }
 
-    // Make sure conversation already exists or started
-    const chatRoom = await this.prisma.chatRoom.findFirst({
-      where: {
-        sourceType: notification.sourceType,
-        sourceId: notification.sourceId,
-      },
+    const chatRoom = await this.conversationService.joinConversation({
+      sourceType: notification.sourceType,
+      sourceId: notification.sourceId,
+      userId,
+      role: NotificationOwnerType.REPORTER,
     });
 
-    if (!chatRoom || !chatRoom.orgJoined)
-      throw new BadRequestException('Conversation has not been started yet');
-
-    // Mark reporter as Joined (Indempotent)
-    if (!chatRoom.reporterJoined) {
-      await this.prisma.chatRoom.update({
-        where: { id: chatRoom.id },
-        data: { reporterJoined: true },
-      });
-    }
-
     return {
-      chatRoomId: chatRoom.id,
+      chatRoomId: chatRoom.chatRoomId,
       message: 'Joined conversation',
     };
   }
@@ -268,45 +237,82 @@ export class NotificationService {
       },
     });
 
-    // 4. Optional: mark chatRoom as inactive (for clarity)
-    await this.prisma.chatRoom.updateMany({
-      where: {
-        sourceType: notification.sourceType,
-        sourceId: notification.sourceId,
-      },
-      data: {
-        // optional flag like isActive = false
-      },
-    });
+    // // 4. Optional: mark chatRoom as inactive (for clarity)
+    // await this.prisma.chatRoom.updateMany({
+    //   where: {
+    //     sourceType: notification.sourceType,
+    //     sourceId: notification.sourceId,
+    //   },
+    //   data: {
+    //     // optional flag like isActive = false
+    //   },
+    // });
 
     // 5. Optional: schedule deletion in 2 days (depends on your job system)
 
     return { message: 'Conversation ended', status: 'CLOSED' };
   }
 
-  async scheduleAutoRemoveClosedNotifications() {
-    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  // async scheduleAutoRemoveClosedNotifications() {
+  //   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
 
-    // Find notifications that were closed more than 2 days ago
-    const notificationsToDelete = await this.prisma.notification.findMany({
-      where: {
-        status: 'CLOSED',
-        closedAt: { lte: twoDaysAgo },
-      },
+  //   // Find notifications that were closed more than 2 days ago
+  //   const notificationsToDelete = await this.prisma.notification.findMany({
+  //     where: {
+  //       status: 'CLOSED',
+  //       closedAt: { lte: twoDaysAgo },
+  //     },
+  //   });
+
+  //   const sourceIds = notificationsToDelete.map((n) => n.sourceId);
+
+  //   // Delete notifications
+  //   await this.prisma.notification.deleteMany({
+  //     where: { sourceId: { in: sourceIds } },
+  //   });
+
+  //   // Optionally delete chat rooms if needed
+  //   await this.prisma.chatRoom.deleteMany({
+  //     where: { sourceId: { in: sourceIds } },
+  //   });
+
+  //   return { deletedNotifications: notificationsToDelete.length };
+  // }
+
+  // async sendMessage(
+  //   chatRoomId: string,
+  //   userId: string,
+  //   senderType: NotificationOwnerType,
+  //   content: string,
+  // ) {
+  //   // Validate chat room exists
+  //   const chatRoom = await this.prisma.chatRoom.findUnique({
+  //     where: { id: chatRoomId },
+  //   });
+
+  //   if (!chatRoom) {
+  //     throw new NotFoundException(
+  //       'No message thread found for this conversation',
+  //     );
+  //   }
+
+  //   // Create message
+  //   const newMessage = await this.prisma.message.create({
+  //     data: {
+  //       chatRoomId,
+  //       senderId: userId,
+  //       senderType,
+  //       content,
+  //     },
+  //   });
+  //   return newMessage;
+  // }
+
+  // Fetch all mesages for a chat room
+  async getChatHistory(chatRoomId: string) {
+    return this.prisma.message.findMany({
+      where: { chatRoomId },
+      orderBy: { createdAt: 'asc' }, // oldest first
     });
-
-    const sourceIds = notificationsToDelete.map((n) => n.sourceId);
-
-    // Delete notifications
-    await this.prisma.notification.deleteMany({
-      where: { sourceId: { in: sourceIds } },
-    });
-
-    // Optionally delete chat rooms if needed
-    await this.prisma.chatRoom.deleteMany({
-      where: { sourceId: { in: sourceIds } },
-    });
-
-    return { deletedNotifications: notificationsToDelete.length };
   }
 }

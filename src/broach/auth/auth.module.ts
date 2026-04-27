@@ -18,6 +18,7 @@ import { CloudinaryProvider } from 'src/cloudinary/cloudinary.provider';
     LoggerModule,
     UtilsModule,
     JwtModule.registerAsync({
+      global: true,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
@@ -28,7 +29,14 @@ import { CloudinaryProvider } from 'src/cloudinary/cloudinary.provider';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TokenService, SessionService, ProfileStatusProvider, CloudinaryProvider],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    TokenService,
+    SessionService,
+    ProfileStatusProvider,
+    CloudinaryProvider,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -6,10 +6,17 @@ import { SafeExecutor } from 'src/utils/safe-execute';
 import { LoggerModule } from 'src/logger/logger.module';
 import { CaseRepository } from './repository/case.repository';
 import { NotificationService } from '../notification/notification.service';
+import { ConversationService } from '../conversation/conversation.service';
 
 @Module({
   imports: [PrismaModule, LoggerModule],
   controllers: [CasesController],
-  providers: [CasesService, SafeExecutor, CaseRepository, NotificationService],
+  providers: [
+    CasesService,
+    SafeExecutor,
+    CaseRepository,
+    NotificationService,
+    ConversationService,
+  ],
 })
 export class CasesModule {}

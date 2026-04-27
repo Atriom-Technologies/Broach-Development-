@@ -17,6 +17,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationModule } from './broach/notification/notification.module';
 import { MetaService } from './meta/meta.service';
 import { MetaModule } from './meta/meta.module';
+import { ConversationModule } from './broach/conversation/conversation.module';
+import { MessageModule } from './broach/message/message.module';
 
 @Module({
   imports: [
@@ -40,6 +42,9 @@ import { MetaModule } from './meta/meta.module';
 
     PrismaModule,
     AuthModule,
+    MessageModule,
+    ConversationModule,
+    MessageModule,
     LoggerModule,
     UtilsModule,
     CasesModule,
