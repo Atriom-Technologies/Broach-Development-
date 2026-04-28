@@ -2,7 +2,6 @@
   "compilerOptions": {
     "module": "commonjs",
     "types": ["node", "express", "multer"],
-    "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -12,7 +11,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     // "baseUrl": "./",
-    "rootDir": "./src",
+    "rootDir": ".",
     "paths": {
       "src/*": ["./src/*"]
     },
