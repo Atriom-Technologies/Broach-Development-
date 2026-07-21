@@ -15,13 +15,12 @@
     "paths": {
       "src/*": ["./src/*"]
     },
+    "strict": true,
+    "strictPropertyInitialization": false,
     "incremental": false,
     "skipLibCheck": true,
-    "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": true
   },
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
 }

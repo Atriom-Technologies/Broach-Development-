@@ -1,11 +1,20 @@
+interface NotificationInput {
+  ownerType: 'ORGANIZATION' | 'REPORTER' | string; // Use exact string literals if possible
+  status: 'CLOSED' | 'PENDING' | 'IN_DISCUSSION' | string;
+}
+
+interface NotificationCTA {
+  cta: string;
+  clickable: boolean;
+}
+
 export function deriveNotificationCTA(
-  notification,
+  notification: NotificationInput,
   chatRoom?: { orgJoined: boolean; reporterJoined: boolean },
-): { cta: string; clickable: boolean }[] {
+): NotificationCTA[] {
   const { ownerType, status } = notification;
 
-  if (status === 'CLOSED')
-    return [{ cta: 'Remove from List', clickable: true }];
+  if (status === 'CLOSED') return [{ cta: 'Remove from List', clickable: true }];
 
   if (ownerType === 'ORGANIZATION') {
     if (status === 'PENDING')

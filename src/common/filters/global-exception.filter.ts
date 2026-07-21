@@ -1,10 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AppLogger } from 'src/logger/logger.service';
 
@@ -24,9 +18,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      message = Array.isArray(res['message'])
-        ? res['message'].join(', ')
-        : res['message'] || message;
+      if (typeof res === 'object' && res !== null) {
+        const resBody = res as { message?: string | string[] };
+        message = Array.isArray(resBody.message) ? resBody.message.join(', ') : resBody.message || message;
+      } else if (typeof res === 'string') {
+        message = res;
+      }
     }
 
     // Prisma unique constraint
@@ -40,19 +37,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       status = HttpStatus.NOT_FOUND;
       message = 'Record not found.';
     }
-
-    // Log full details for YOU (not the frontend)
-    this.logger.error(JSON.stringify({
+    const logPayload = {
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
       status,
-      exception: exception.message,
-      stack: exception.stack,
+      exception: exception.message || exception,
       body: request.body,
-      params: request.params,
-      query: request.query,
-    }));
+    };
+
+    if (status >= 500) {
+      // CRITICAL INFRASTRUCTURE FAILURE (Database down, syntax crashes, null pointers)
+      // Log full details along with the stack trace for engineering alerts
+      this.logger.error(
+        `[CRITICAL FAILURE] ${request.method} ${request.url} - Status: ${status}`,
+        JSON.stringify({ ...logPayload, stack: exception.stack }),
+      );
+    } else {
+      //  NORMAL CLIENT VARIANCE (Wrong password, missing profile, validation error)
+      // Log as a light warning without a heavy stack trace to keep logs clean
+      this.logger.warn(`[CLIENT WARN] ${request.method} ${request.url} - Status: ${status} - Msg: ${message}`);
+    }
 
     // Clean response to frontend
     response.status(status).json({

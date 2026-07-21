@@ -5,10 +5,11 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { OrganizationProfileController } from './organization-profile.controller';
 import { OrganizationProfileService } from './organization-profile.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   imports: [PrismaModule, LoggerModule],
-  providers: [OrganizationProfileService, CloudinaryProvider, SafeExecutor],
+  providers: [OrganizationProfileService, CloudinaryProvider, SafeExecutor, PrismaService],
   controllers: [OrganizationProfileController],
 })
 export class OrganizationProfileModule {}

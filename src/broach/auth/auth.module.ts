@@ -11,6 +11,7 @@ import { LoggerModule } from 'src/logger/logger.module';
 import { UtilsModule } from 'src/utils/utils.module';
 import { ProfileStatusProvider } from '../../helper/profile-status.provider';
 import { CloudinaryProvider } from 'src/cloudinary/cloudinary.provider';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CloudinaryProvider } from 'src/cloudinary/cloudinary.provider';
     SessionService,
     ProfileStatusProvider,
     CloudinaryProvider,
+    PrismaService,
   ],
   exports: [AuthService],
 })

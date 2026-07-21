@@ -7,24 +7,22 @@ export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
   // Send message in a chat room
-  async sendMessage(params: {
-    chatRoomId: string;
-    senderId: string;
-    content: string;
-  }) {
-    const participant = await this.prisma.chatParticipant.findUnique({
-      where: {
-        chatRoomId_userId: {
-          chatRoomId: params.chatRoomId,
-          userId: params.senderId,
-        },
-      },
-    });
+  async sendMessage(params: { chatRoomId: string; senderId: string; content: string }) {
+    const [participant, room] = await Promise.all([
+      this.prisma.chatParticipant.findUnique({
+        where: { chatRoomId_userId: { chatRoomId: params.chatRoomId, userId: params.senderId } },
+      }),
+      this.prisma.chatRoom.findUnique({
+        where: { id: params.chatRoomId },
+        select: { status: true },
+      }),
+    ]);
 
     if (!participant) {
-      throw new ForbiddenException(
-        'User is not a participant of this chat room',
-      );
+      throw new ForbiddenException('User is not a participant of this chat room');
+    }
+    if (room?.status !== 'ACTIVE') {
+      throw new ForbiddenException('This conversation has ended.');
     }
 
     return this.prisma.message.create({
@@ -51,25 +49,23 @@ export class MessageService {
   }
 
   // Get messages (paginated)
-  async getMessages(params: {
-    chatRoomId: string;
-    cursor?: string;
-    limit?: number;
-  }) {
+  async getMessages(params: { chatRoomId: string; cursor?: string; limit?: number }) {
     const limit = params.limit ?? 20;
 
     const messages = await this.prisma.message.findMany({
-      where: {
-        chatRoomId: params.chatRoomId,
-      },
+      where: { chatRoomId: params.chatRoomId },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: limit + 1,
       ...(params.cursor && { skip: 1, cursor: { id: params.cursor } }),
     });
 
+    const hasMore = messages.length > limit;
+    const page = hasMore ? messages.slice(0, limit) : messages;
+
+    const oldestInPage = page[page.length - 1]?.id ?? null;
     return {
-      messages: messages.reverse(), // Reverse to return in chronological order, older messages first
-      nextCursor: messages.length ? messages[messages.length - 1].id : null,
+      messages: page.reverse(),
+      nextCursor: hasMore ? oldestInPage : null,
     };
   }
 }

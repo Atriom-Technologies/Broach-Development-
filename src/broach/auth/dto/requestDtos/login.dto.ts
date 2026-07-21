@@ -7,20 +7,16 @@ export class LoginDto {
     description: 'Email address of the user',
     example: 'example@gmail.com',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value == 'string' ? value?.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value == 'string' ? value?.trim().toLowerCase() : value))
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'Password for the user account',
     example: 'strongPassword123',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value == 'string' ? value?.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value == 'string' ? value?.trim() : value))
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 }

@@ -32,56 +32,42 @@ export class RegisterSupportOrgDto {
     description: 'Name of the organization',
     example: 'Helping Hands Initiative',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
-  organizationName: string;
-
+  organizationName!: string;
 
   @ApiProperty({
-    description: 'Email address of the organization'
+    description: 'Email address of the organization',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsEmail()
-  email: string;
-
+  email!: string;
 
   @ApiProperty({
     description: 'Phone number of the organization',
     example: '+2348012345678 or 08012345678',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Matches(/^(?:0\d{10}|\+234\d{10})$/, {
-  message: 'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
+    message: 'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
   })
-  phone: string;
-
+  phone!: string;
 
   @ApiProperty({
     description: 'Password for the organization account',
     example: 'strongPassword123',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @MinLength(6)
-  password: string;
-
+  password!: string;
 
   @ApiProperty({
     description: 'Confirmation of the password',
     example: 'strongPassword123',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Match('password', { message: 'Passwords do not match' })
-  confirmPassword: string;
+  confirmPassword!: string;
   /* 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) =>
@@ -118,15 +104,14 @@ export class RegisterSupportOrgDto {
 */
 }
 
-
 export class CompleteSupportOrgProfileDto {
-/*   @ApiProperty({
+  /*   @ApiProperty({
     description: 'User ID',
   })
   @IsUUID()
   userId: string; */
 
-// Sector Id of the organizations selected.
+  // Sector Id of the organizations selected.
   @ApiProperty({
     description: 'IDs of the selected sectors',
     example: ['b2f0a4a3-8b10-4d3b-98f1-5df28a3e7e3c'],
@@ -138,49 +123,40 @@ export class CompleteSupportOrgProfileDto {
   })
   @IsUUID('all', { each: true })
   @IsOptional()
-  sectorId: string[];
-
+  sectorId!: string[];
 
   // date the organization was established
   @ApiProperty({
     description: 'date established of the organization',
     example: '2000-01-01',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsDateString()
-  dateEstablished: string;
+  dateEstablished!: string;
 
-// size of the organization
+  // size of the organization
   @ApiProperty({
     description: 'size of the organization',
     example: 'size_5_10',
   })
   @IsEnum(OrgSize)
-  organizationSize: OrgSize;
+  organizationSize!: OrgSize;
 
-// address of the organization
+  // address of the organization
   @ApiProperty({
-  description: 'Organization address',
-  example: '123 Main St, Lagos, Nigeria',
+    description: 'Organization address',
+    example: '123 Main St, Lagos, Nigeria',
   })
-  @Transform(({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  address: string
+  address!: string;
 
   // alternate phone number of the organization
   @ApiProperty({
     description: 'Alternate phone number of the organization',
     example: '+2348012345678 or 08012345678',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
-  alternatePhone: string;
-
-
+  alternatePhone!: string;
 }

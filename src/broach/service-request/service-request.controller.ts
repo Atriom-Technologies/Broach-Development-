@@ -22,7 +22,7 @@ import { UserType } from '@prisma/client';
 import { BioDetailsDto } from './dto/create-service-request.dto';
 import { RequestWithUserPayload } from 'src/broach/auth/interfaces/jwt-payload.interface';
 import { ApiResponse } from 'src/common/dto/api-response.dto';
-import { PaginationDto } from './dto/pagination.dto';
+import { CursorPaginationDto } from './dto/pagination.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 
 @ApiTags('Service Request')
@@ -34,10 +34,7 @@ export class ServiceRequestController {
   @Post('create')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.requester_reporter)
-  async createServiceRequest(
-    @Body() dto: BioDetailsDto,
-    @Req() req: RequestWithUserPayload,
-  ): Promise<ApiResponse> {
+  async createServiceRequest(@Body() dto: BioDetailsDto, @Req() req: RequestWithUserPayload): Promise<ApiResponse> {
     const userId = req.user.id; // Extract user ID from the request
     await this.serviceRequest.createServiceRequest(dto, userId);
     return {
@@ -53,7 +50,7 @@ export class ServiceRequestController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.requester_reporter)
-  async getAllServiceRequests(@Query() dto: PaginationDto) {
+  async getAllServiceRequests(@Query() dto: CursorPaginationDto) {
     return this.serviceRequest.getAllServiceRequests(dto);
   }
 
@@ -86,10 +83,7 @@ export class ServiceRequestController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.requester_reporter)
-  async deleteCase(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Req() req: RequestWithUserPayload,
-  ) {
+  async deleteCase(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: RequestWithUserPayload) {
     const userId = req.user.id; // Extract user ID from the request
     await this.serviceRequest.deleteServiceRequest(id, userId);
     return {

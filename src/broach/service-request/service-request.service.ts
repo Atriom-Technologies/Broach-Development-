@@ -1,67 +1,45 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { BioDetailsDto } from './dto/create-service-request.dto';
 import { Prisma, UserType } from '@prisma/client';
 import { ServiceRepository } from './service-repository/service.repository';
-import { PaginationDto } from './dto/pagination.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { AppLogger } from 'src/logger/logger.service';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import { NOTIFICATION_QUEUE, SERVICE_REQUEST_JOB } from 'src/shared/constant/case.constants';
+import { ServiceRequestListItem } from './types';
+import { CursorPaginationDto } from './dto/pagination.dto';
 @Injectable()
 export class ServiceRequestService {
   constructor(
+    @InjectQueue(NOTIFICATION_QUEUE) private readonly serviceRequestQueue: Queue,
+
     private readonly safeExecutor: SafeExecutor,
     private readonly repo: ServiceRepository,
-  ) {}
+    private readonly logger: AppLogger,
+  ) {
+    this.logger.setContext(ServiceRequestService.name);
+  }
 
   // Create a new service request
   async createServiceRequest(dto: BioDetailsDto, userId: string) {
-    // Check if usertype is requester/reporter before allowing access
+    const user = await this.repo.findUserById(userId); // assumes this includes requesterReporterProfile, like createCase does
 
-    const user = await this.safeExecutor.run(
-      () => this.repo.findUserTypeById(userId),
-      'No user type found for service request',
-    );
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} does not exist.`);
+    }
 
-    if (user?.userType !== UserType.requester_reporter)
-      throw new ForbiddenException('Not authorized to request a service');
+    if (user.userType !== UserType.requester_reporter) {
+      throw new ForbiddenException('Not authorized to request a service.');
+    }
 
-    // Check if the requesterProfileId exists
-    const profile = await this.safeExecutor.run(
-      () => this.repo.findRequesterProfileByUserId(userId),
-      'Sorry profile not found',
-    );
-
-    // If profile not found, return an error message
-    if (!profile)
-      throw new BadRequestException(
-        'Please complete your profile before requesting for a service',
-      );
-
-    // Check if ServiceType ID from front end is valid. ServiceTYpe would be selected and just the id would be sent from front end
-    // const serviceTypeId = await this.safeExecutor.run(
-    //     () => this.prisma.serviceType.findUnique(
-    //         { where: { id: dto.serviceDetails.serviceTypeId }}
-    //     ),`Failed to fetch Request Service Id: ${dto.serviceDetails.serviceTypeId}`
-    // );
-    // if(!serviceTypeId) throw new BadRequestException(`Invalid service type. Please select a valid type of service`)
-
-    // Check if vulnerable status ID from front end is valid. vulnerable status would be selected and just the id would be sent
-    // const vulnerabilityStatusId = await this.safeExecutor.run(
-    //     () => this.prisma.serviceRequests.findUnique({
-    //         where: {
-    //             id: dto.serviceDetails.vulnerabilityStatusId
-    //         }
-    //     }),`Failed to fetch Case Id: ${dto.serviceDetails.vulnerabilityStatusId}`
-    // );
-    // if(!vulnerabilityStatusId) throw new BadRequestException(`Invalid type. Please select a valid vulenerability status`)
-
-    // Build the data to be created
+    if (!user.requesterReporterProfile) {
+      throw new BadRequestException('Please complete your profile before requesting a service.');
+    }
 
     const data: Prisma.ServiceRequestsCreateInput = {
-      requesterReporterProfile: { connect: { id: profile.id } },
+      requesterReporterProfile: { connect: { id: user.requesterReporterProfile.userId } },
       whoNeedsThisService: dto.whoNeedsThisService,
       ageRange: dto.ageRange,
       phone: dto.phone,
@@ -72,9 +50,7 @@ export class ServiceRequestService {
         serviceDetails: {
           create: {
             serviceType: { connect: { id: dto.serviceDetails.serviceTypeId } },
-            vulnerabilityStatus: {
-              connect: { id: dto.serviceDetails.vulnerabilityStatusId },
-            },
+            vulnerabilityStatus: { connect: { id: dto.serviceDetails.vulnerabilityStatusId } },
             maritalStatus: dto.serviceDetails.maritalStatus,
             workStatus: dto.serviceDetails.workStatus,
             description: dto.serviceDetails.description,
@@ -83,97 +59,26 @@ export class ServiceRequestService {
       }),
     };
 
-    // Create the service request
-    await this.safeExecutor.run(
-      () => this.repo.createServiceRequest(data),
-      'Failed to create a service request',
-    );
+    const serviceRequest = await this.repo.createServiceRequest({
+      data,
+      include: { requesterReporterProfile: { include: { user: true } }, serviceDetails: true },
+    });
+
+    try {
+      await this.serviceRequestQueue.add(
+        SERVICE_REQUEST_JOB, // use a constant, same lesson as the case-report job name mismatch
+        { requestId: serviceRequest.id, requesterReporterProfileId: user.requesterReporterProfile.userId },
+        { attempts: 5, backoff: { type: 'exponential', delay: 2000 } },
+      );
+    } catch (err) {
+      this.logger.error(`Failed to enqueue notification for service request ${serviceRequest.id}`);
+    }
+
+    return {
+      success: true,
+      requestId: serviceRequest.id,
+    };
   }
-
-
-
-
-
-
-
-
-
-    /**
-     * Run case and report submission and notification of organization as a transaction
-     * The custom safe executor helper function wraps try catch function, takes two arguments. 
-     * Takes the function to be executed in the try block and error message for the catch block
-     */
-   /*  return this.safeExecutor.run(async () => {
-      return this.prisma.$transaction( async (tx) => {
-                // Build the data to be created
-        const data: Prisma.CaseDetailsCreateInput = {
-          requesterReporterProfile: { connect: { id: profile.id } },
-          caseType: { connect: { id: caseType.id } },
-          whoIsReporting: dto.whoIsReporting,
-          location: dto.location,
-          description: dto.description,
-          infoConfirmed: dto.infoConfirmed,
-
-          ...(dto.victimDetails && {
-            victimDetails: {
-              create: {
-                ageRange: dto.victimDetails.ageRange,
-                employmentStatus: dto.victimDetails.employmentStatus,
-                gender: dto.victimDetails.gender,
-                vulnerabilityStatusId: dto.victimDetails.vulnerabilityStatusId,
-              },
-            },
-          }),
-
-          ...(dto.assailantDetails && {
-            assailantDetails: {
-              create: {
-                noOfAssailants: dto.assailantDetails.noOfPeople,
-                gender: dto.assailantDetails.gender,
-                ageRange: dto.assailantDetails.ageRange,
-              },
-            },
-          }),
-        };
-
-
-        // Create case via repo
-        const caseRecord = await this.repo.createCase(
-          {
-            data,
-            include: {
-              requesterReporterProfile: { include: { user: true } },
-              caseType: true,
-              victimDetails: true,
-              assailantDetails: true,
-            },
-          },
-          tx,
-        );
-
-
-
-        // Create notification for all organizations atomically... Bros browse about am if you no know. me sef no sabi am..
-        const count = await this.notificationService.createNotificationForAllOrgs(
-          {
-            senderId: user.id,
-            relatedId: caseRecord.id,
-            type: EngagementType.CASE_REPORT,
-            message: `Hello! You've got New Case Report from ${user.requesterReporterProfile?.fullName}`,
-            status: NotificationStatus.pending
-          },
-          tx,
-        );
-
-      })
-    },` Failed to Execute transactions for case creation and notification`)
-
- */
-
-
-
-
-
 
   // Fetch a service request by ID
   async getServiceRequest(id: string) {
@@ -184,21 +89,41 @@ export class ServiceRequestService {
   }
 
   // Fetch all service requests
-  async getAllServiceRequests(pagination: PaginationDto) {
-    const skip = (pagination.page - 1) * pagination.limit;
+  async getAllServiceRequests(pagination: CursorPaginationDto) {
+    const { cursor, limit } = pagination;
 
-    return this.safeExecutor.run(
-      () => this.repo.getAllServiceRequests(skip, pagination.limit),
-      `Failed to get all cases`,
-    );
+    const requests = await this.repo.getAllServiceRequests(limit, cursor);
+
+    if (!requests.length) throw new NotFoundException('No Data Available.');
+
+    const hasNextPage = requests.length > limit;
+    const items = hasNextPage ? requests.slice(0, limit) : requests;
+
+    return {
+      data: items.map((item) => this.toServiceRequestSummary(item)),
+      meta: {
+        hasNextPage,
+        nextCursor: hasNextPage ? items[items.length - 1].id : null,
+      },
+    };
   }
 
+  private toServiceRequestSummary(item: ServiceRequestListItem) {
+    return {
+      id: item.id,
+      createdAt: item.createdAt,
+      description: item.serviceDetails?.description ?? null,
+      serviceType: item.serviceDetails?.serviceType?.name ?? null,
+      requester: item.requesterReporterProfile
+        ? {
+            fullName: item.requesterReporterProfile.fullName,
+            profilePicture: item.requesterReporterProfile.profilePicture,
+          }
+        : null,
+    };
+  }
   // Update a service request
-  async updateServiceRequest(
-    id: string,
-    userId: string,
-    dto: UpdateServiceDto,
-  ) {
+  async updateServiceRequest(id: string, userId: string, dto: UpdateServiceDto) {
     // Map the DTO to Prisma's update input format
     const data: Prisma.ServiceRequestsUpdateInput = {
       // Top level fields

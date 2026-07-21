@@ -8,17 +8,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import {
-  RegisterReqRepDto,
-  RequesterCompleteProfileDto,
-} from './dto/requestDtos/register-req-rep.dto';
+import { RegisterReqRepDto, RequesterCompleteProfileDto } from './dto/requestDtos/register-req-rep.dto';
 import * as argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, UserType } from '@prisma/client';
-import {
-  CompleteSupportOrgProfileDto,
-  RegisterSupportOrgDto,
-} from './dto/requestDtos/register-support-org.dto';
+import { CompleteSupportOrgProfileDto, RegisterSupportOrgDto } from './dto/requestDtos/register-support-org.dto';
 import { LoginDto } from './dto/requestDtos/login.dto';
 import { RefreshDto } from './dto/requestDtos/refresh.dto';
 import { TokenService } from './services/token.service';
@@ -27,10 +21,7 @@ import { AppLogger } from 'src/logger/logger.service';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { ForbiddenException } from '@nestjs/common';
 import { ProfileStatusProvider } from '../../helper/profile-status.provider';
-import {
-  ForgotPassword,
-  ResetPassword,
-} from './dto/requestDtos/forgot-password.dto';
+import { ForgotPassword, ResetPassword } from './dto/requestDtos/forgot-password.dto';
 import { randomBytes } from 'crypto';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
@@ -60,10 +51,7 @@ export class AuthService {
 
     // Check if user type is requester_reporter before proceeding
     if (userType !== UserType.requester_reporter) {
-      this.logger.warn(`User ${dto.email} not a requester/reporter`);
-      throw new UnauthorizedException(
-        'Did you mean to register as an organization?',
-      );
+      throw new UnauthorizedException('Did you mean to register as an organization?');
     }
 
     // Check if user exists to avoid duplicate email or phone
@@ -72,9 +60,6 @@ export class AuthService {
     });
 
     if (existingUser) {
-      this.logger.warn(
-        `Registration failed: User already exists with email: ${email} or phone: ${phone}`,
-      );
       throw new ConflictException('User already exist');
     }
 
@@ -145,9 +130,7 @@ export class AuthService {
     // Check if user is reporter_requester before proceeding
     if (userType !== 'requester_reporter') {
       this.logger.warn(`User not a requester/reporter`);
-      throw new UnauthorizedException(
-        'Did you mean to register as an organization?',
-      );
+      throw new UnauthorizedException('Did you mean to register as an organization?');
     }
     // Fetch User by Id to check if user exists
     //const id = dto.userId;
@@ -170,35 +153,30 @@ export class AuthService {
     let profilePicture: string | undefined;
 
     if (file) {
-      const uploadResult = await new Promise<UploadApiResponse>(
-        (resolve, reject) => {
-          this.cloudinary.uploader
-            .upload_stream(
-              {
-                folder: 'broach/profiles',
-                public_id: `${user.id}-profile`,
-                overwrite: true,
-                resource_type: 'image',
-              },
+      const uploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+        this.cloudinary.uploader
+          .upload_stream(
+            {
+              folder: 'broach/profiles',
+              public_id: `${user.id}-profile`,
+              overwrite: true,
+              resource_type: 'image',
+            },
 
-              (
-                error: UploadApiErrorResponse | undefined,
-                result: UploadApiResponse | undefined,
-              ) => {
-                if (error) {
-                  reject(new InternalServerErrorException(error.message));
-                  return;
-                }
-                if (!result) {
-                  reject(new InternalServerErrorException('Upload failed'));
-                  return;
-                }
-                resolve(result);
-              },
-            )
-            .end(file.buffer);
-        },
-      );
+            (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+              if (error) {
+                reject(new InternalServerErrorException(error.message));
+                return;
+              }
+              if (!result) {
+                reject(new InternalServerErrorException('Upload failed'));
+                return;
+              }
+              resolve(result);
+            },
+          )
+          .end(file.buffer);
+      });
 
       profilePicture = uploadResult.secure_url;
       // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
@@ -252,10 +230,7 @@ export class AuthService {
   }
 
   // Organization Registration
-  async registerSupportOrganization(
-    dto: RegisterSupportOrgDto,
-    userType: UserType,
-  ) {
+  async registerSupportOrganization(dto: RegisterSupportOrgDto, userType: UserType) {
     // Get email, phone, password, confirmpassword except profile data
     const { organizationName, email, phone, password, confirmPassword } = dto;
 
@@ -267,9 +242,7 @@ export class AuthService {
     // Check if user type is requester_reporter before proceeding
     if (userType !== UserType.support_organization) {
       this.logger.warn(`User ${dto.email} not a support organization`);
-      throw new UnauthorizedException(
-        'Did you mean to register as a Requester/reporter?',
-      );
+      throw new UnauthorizedException('Did you mean to register as a Requester/reporter?');
     }
 
     // Check if user exists to avoid duplicate email or phone
@@ -282,9 +255,7 @@ export class AuthService {
     );
 
     if (existingUser) {
-      this.logger.warn(
-        `Registration failed: User already exists with email: ${email} or phone: ${phone}`,
-      );
+      this.logger.warn(`Registration failed: User already exists with email: ${email} or phone: ${phone}`);
       throw new ConflictException('User already exist');
     }
 
@@ -369,9 +340,7 @@ export class AuthService {
     // Check if user is reporter_requester before proceeding
     if (userType !== UserType.support_organization) {
       this.logger.warn(`User not a Support Organization`);
-      throw new UnauthorizedException(
-        'Did you mean to register as reporter/requester?',
-      );
+      throw new UnauthorizedException('Did you mean to register as reporter/requester?');
     }
     // Fetch User by Id to check if user exists
     // const id = dto.userId;
@@ -394,35 +363,30 @@ export class AuthService {
     let organizationLogoUrl: string | undefined;
 
     if (file) {
-      const uploadResult = await new Promise<UploadApiResponse>(
-        (resolve, reject) => {
-          this.cloudinary.uploader
-            .upload_stream(
-              {
-                folder: 'broach/profiles',
-                public_id: `${user.id}-Organization-profile`,
-                overwrite: true,
-                resource_type: 'image',
-              },
+      const uploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+        this.cloudinary.uploader
+          .upload_stream(
+            {
+              folder: 'broach/profiles',
+              public_id: `${user.id}-Organization-profile`,
+              overwrite: true,
+              resource_type: 'image',
+            },
 
-              (
-                error: UploadApiErrorResponse | undefined,
-                result: UploadApiResponse | undefined,
-              ) => {
-                if (error) {
-                  reject(new InternalServerErrorException(error.message));
-                  return;
-                }
-                if (!result) {
-                  reject(new InternalServerErrorException('Upload failed'));
-                  return;
-                }
-                resolve(result);
-              },
-            )
-            .end(file.buffer);
-        },
-      );
+            (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+              if (error) {
+                reject(new InternalServerErrorException(error.message));
+                return;
+              }
+              if (!result) {
+                reject(new InternalServerErrorException('Upload failed'));
+                return;
+              }
+              resolve(result);
+            },
+          )
+          .end(file.buffer);
+      });
 
       organizationLogoUrl = (uploadResult as UploadApiResponse).secure_url;
       // profilePictureUrl = uploadResult.secure_url ?? dto.profilePicture;
@@ -441,9 +405,7 @@ export class AuthService {
     const data: Prisma.SupportOrgProfileUpdateInput = {
       user: { connect: { id: user.id } },
       address: dto.address,
-      dateEstablished: dto.dateEstablished
-        ? new Date(dto.dateEstablished)
-        : undefined,
+      dateEstablished: dto.dateEstablished ? new Date(dto.dateEstablished) : undefined,
       organizationSize: dto.organizationSize,
       alternatePhone: dto.alternatePhone,
       ...(organizationLogoUrl && { organizationLogoUrl }),
@@ -468,9 +430,7 @@ export class AuthService {
     });
 
     if (!exists) {
-      throw new BadRequestException(
-        'Support organization profile was not initialized during registration',
-      );
+      throw new BadRequestException('Support organization profile was not initialized during registration');
     }
     //Update the requester profile data
     const profile = await this.safeExecutor.run(
@@ -507,18 +467,14 @@ export class AuthService {
 
     // Login failure: email not found
     if (!user) {
-      this.logger.warn(
-        `Login failed: Email not found - ${email} from IP ${ipAddress}`,
-      );
+      this.logger.warn(`Login failed: Email not found - ${email} from IP ${ipAddress}`);
       throw new UnauthorizedException('Login failed');
     }
 
     // Verify password (expected failure, no SafeExecutor)
     const isPasswordValid = await argon2.verify(user.password, password);
     if (!isPasswordValid) {
-      this.logger.warn(
-        `Login failed: Invalid password - ${email} from IP ${ipAddress}`,
-      );
+      this.logger.warn(`Login failed: Invalid password - ${email} from IP ${ipAddress}`);
       throw new UnauthorizedException('Login failed');
     }
 
@@ -531,13 +487,7 @@ export class AuthService {
 
       // --- Store session ---
       const session = await this.safeExecutor.run(
-        () =>
-          this.sessionService.createSession(
-            user.id,
-            refreshTokenRaw,
-            ipAddress,
-            userAgent,
-          ),
+        () => this.sessionService.createSession(user.id, refreshTokenRaw, ipAddress, userAgent),
         'Failed to create session during login',
       );
 
@@ -555,8 +505,7 @@ export class AuthService {
       );
 
       // --- Check profile completion ---
-      const isProfileDetailsSubmitted =
-        await this.profile.isProfileDetailsSubmitted(user.id);
+      const isProfileDetailsSubmitted = await this.profile.isProfileDetailsSubmitted(user.id);
 
       // Log successful login
       this.logger.log(`Login successful for ${email} from IP ${ipAddress}`);
@@ -581,9 +530,7 @@ export class AuthService {
       // Only unexpected errors are logged
       const message = err instanceof Error ? err.message : 'unknown error';
       this.logger.error(`Unexpected login error for ${email}`, message);
-      throw new InternalServerErrorException(
-        'Login failed due to system error',
-      );
+      throw new InternalServerErrorException('Login failed due to system error');
     }
   }
 
@@ -594,9 +541,7 @@ export class AuthService {
     );
 
     if (!session || session.userId !== userId) {
-      this.logger.warn(
-        `Logout failed for userId: ${userId}, sessionId: ${sessionId}`,
-      );
+      this.logger.warn(`Logout failed for userId: ${userId}, sessionId: ${sessionId}`);
       throw new ForbiddenException('Invalid session or unauthorized');
     }
 
@@ -605,9 +550,7 @@ export class AuthService {
       'Failed to delete session during logout',
     );
 
-    this.logger.log(
-      `User ${userId} successfully logged out from session ${sessionId}`,
-    );
+    this.logger.log(`User ${userId} successfully logged out from session ${sessionId}`);
   }
 
   async refresh(dto: RefreshDto, sessionId: string) {
@@ -634,9 +577,7 @@ export class AuthService {
 
     // If refresh token is invalid, delete session and throw error
     if (!isValid) {
-      this.logger.warn(
-        `Refresh token mismatch. Deleting session: ${sessionId}`,
-      );
+      this.logger.warn(`Refresh token mismatch. Deleting session: ${sessionId}`);
       await this.prisma.refreshSession.delete({ where: { id: sessionId } });
       throw new UnauthorizedException('Refresh token invalid or expired');
     }
@@ -652,9 +593,7 @@ export class AuthService {
     );
     // If user not found, throw error
     if (!user) {
-      this.logger.warn(
-        `Refresh failed: User not found (id: ${session.userId})`,
-      );
+      this.logger.warn(`Refresh failed: User not found (id: ${session.userId})`);
       throw new UnauthorizedException('Invalid user');
     }
 
@@ -713,9 +652,7 @@ export class AuthService {
     );
 
     // get expiry time from env file
-    const expiry = this.configService.getOrThrow<number>(
-      'PASSWORD_RESET_EXPIRY',
-    );
+    const expiry = this.configService.getOrThrow<number>('PASSWORD_RESET_EXPIRY');
 
     // set it to expire in 10mins
     const expiresAt = new Date(Date.now() + expiry * (60 * 1000));
@@ -760,9 +697,7 @@ export class AuthService {
     if (!isValid) throw new UnauthorizedException('Invalid token');
 
     if (newPassword !== confirmPassword) {
-      this.logger.warn(
-        `Password reset failed: new Password mismatch for userId: ${userId}`,
-      );
+      this.logger.warn(`Password reset failed: new Password mismatch for userId: ${userId}`);
       throw new BadRequestException('Passwords do not match');
     }
 

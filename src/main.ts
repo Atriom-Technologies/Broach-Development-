@@ -12,10 +12,7 @@ async function bootstrap() {
 
   // Cors
   app.enableCors({
-    origin: [
-      'https://broach-development-profile.onrender.com',
-      'http://localhost:3000',
-    ],
+    origin: ['https://broach-development-profile.onrender.com', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -46,7 +43,8 @@ async function bootstrap() {
   //     return; // Empty 200 OK
   //   }
   // }
-  // app.useGlobalFilters(new GlobalExceptionFilter(app.get(AppLogger)));
+  const logger = await app.resolve(AppLogger);
+  app.useGlobalFilters(new GlobalExceptionFilter(logger));
 
   // Global validation pipe
   app.useGlobalPipes(

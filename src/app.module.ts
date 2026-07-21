@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './broach/auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
@@ -12,27 +12,34 @@ import { CasesModule } from './broach/cases/cases.module';
 import { ServiceRequestModule } from './broach/service-request/service-request.module';
 import { RequesterProfileModule } from './broach/profiles/requester-profile/requester-profile.module';
 import { OrganizationProfileModule } from './broach/profiles/organization-profile/organization-profile.module';
-import * as Joi from 'joi';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { NotificationModule } from './broach/notification/notification.module';
-import { MetaService } from './meta/meta.service';
-import { MetaModule } from './meta/meta.module';
+import { LookupModule } from './lookup/lookup.module';
 import { ConversationModule } from './broach/conversation/conversation.module';
 import { MessageModule } from './broach/message/message.module';
+import { BullModule } from '@nestjs/bullmq';
+import { envValidationSchema } from './config/joi.validation';
+import bullmqConfig from './config/bullmq.config';
+import cacheConfig from './config/cache.config';
+import { RedisCacheModule } from './common/redis/redis-cache.module';
+import { QueueMOdule } from './common/queue/queue.module';
 
 @Module({
   imports: [
-    // Load environmental variables
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
-      validationSchema: Joi.object({
-        BCRYPT_SALT_ROUNDS: Joi.number().required(),
-        JWT_SECRET: Joi.string().required(),
-        JWT_EXPIRATION: Joi.string().default('60min').optional(),
-        REFRESH_TOKEN_TTL: Joi.number().default(604800000), // default if fallback needed
+      validationSchema: envValidationSchema,
+      load: [bullmqConfig, cacheConfig],
+    }),
+
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: config.get('bull')!,
       }),
     }),
+
     ThrottlerModule.forRoot([
       {
         ttl: 60,
@@ -52,8 +59,10 @@ import { MessageModule } from './broach/message/message.module';
     RequesterProfileModule,
     OrganizationProfileModule,
     EventEmitterModule.forRoot(),
-    MetaModule,
+    LookupModule,
     NotificationModule,
+    RedisCacheModule,
+    QueueMOdule,
   ],
   controllers: [AppController],
   providers: [
@@ -62,7 +71,6 @@ import { MessageModule } from './broach/message/message.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    MetaService,
   ],
 })
 export class AppModule {}

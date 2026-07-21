@@ -1,15 +1,6 @@
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsString,
-  IsDateString,
-  IsEnum,
-  MinLength,
-  IsOptional,
-  Matches,
-  IsUUID,
-} from 'class-validator';
+import { IsEmail, IsString, IsDateString, IsEnum, MinLength, IsOptional, Matches, IsUUID } from 'class-validator';
 import { Match } from 'src/utils/validators/match.decorator';
 import { Gender } from '@prisma/client';
 
@@ -18,54 +9,43 @@ export class RegisterReqRepDto {
     description: 'Full name of the user',
     example: 'Jesse Pinkman',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
-  fullName: string;
+  fullName!: string;
 
   @ApiProperty({
     description: 'Email address of the user',
     example: 'abcdew@example.com',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'Phone number of the user',
     example: '+2348012345678 or 08012345678',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Matches(/^(?:0\d{10}|\+234\d{10})$/, {
-    message:
-      'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
+    message: 'Phone must be either local (080XXXXXXXX) or international (+234XXXXXXXXXX)',
   })
-  phone: string;
+  phone!: string;
 
   @ApiProperty({
     description: 'Password for the user account',
     example: 'strongPassword123',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @MinLength(6)
-  password: string;
+  password!: string;
 
   @ApiProperty({
     description: 'Confirmation of the password',
     example: 'strongPassword123',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Match('password', { message: 'Password do not match' })
-  confirmPassword: string;
+  confirmPassword!: string;
 }
 
 export class RequesterCompleteProfileDto {
@@ -73,40 +53,34 @@ export class RequesterCompleteProfileDto {
     description: 'User ID',
   })
   @IsUUID()
-  userId: string;
+  userId!: string;
 
   @ApiProperty({
     description: 'Gender of the user',
     example: 'male',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEnum(Gender)
-  gender: Gender;
+  gender!: Gender;
 
   @ApiProperty({
     description: 'Date of birth of the user',
     example: '1987-05-10',
   })
   @IsDateString()
-  dateOfBirth: string;
+  dateOfBirth!: string;
 
   @ApiProperty({
     description: 'Occupation of the user',
     example: 'Engineer',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toLowerCase() : value,
-  )
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
-  occupation: string;
+  occupation!: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @Transform(({ value }: { value: string }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(({ value }: { value: string }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   location?: string;
 

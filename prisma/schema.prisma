@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Enum field that allows for a single selection and not multiple as in []
@@ -54,6 +53,15 @@ enum CaseStatus {
   in_discussion
   resolved
   closed
+  withdrawn
+}
+
+enum AssignmentStatus {
+  pending
+  in_discussion
+  resolved
+  rejected
+  withdrawn
 }
 
 enum AgeRange {
@@ -99,9 +107,10 @@ model User {
   supportOrgProfile        SupportOrgProfile?
   passwordReset            PasswordReset?
 
-
+  sentMessages       Message[]
+  chatParticipations ChatParticipant[]
   //Relation 
-  refreshSessions           RefreshSession[] //  one-to-many relation
+  refreshSessions    RefreshSession[] //  one-to-many relation
 
   @@index([userType])
   @@index([email])
@@ -129,8 +138,6 @@ model RequesterReporterProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([fullName])
-  @@index([id])
-  @@index([userId])
 }
 
 model SupportOrgProfile {
@@ -151,8 +158,12 @@ model SupportOrgProfile {
   //CaseAssignments    CaseAssignment[] // An organization can be assigned more than one case report
   //ServiceAssignments ServiceAssignment[] // An organization can accept more than one service request
   // Relation to parent table/model
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  supportOrgSector SupportOrgSector[]
+  user                     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  supportOrgSector         SupportOrgSector[]
+  claimedCases             CaseDetails[]
+  claimedServiceRequests   ServiceRequests[]
+  caseAssignments          CaseAssignment[]
+  serviceRequestAssignment ServiceAssignment[]
 
   @@index([userId])
   @@index([organizationName])
@@ -237,6 +248,11 @@ model CaseDetails {
   infoConfirmed  Boolean        @default(false)
   caseStatus     CaseStatus     @default(pending)
 
+  claimedByOrganizationId String?
+  caseAssignments         CaseAssignment[]
+
+  claimedByOrganization SupportOrgProfile? @relation(fields: [claimedByOrganizationId], references: [id], onDelete: SetNull)
+
   // Relations with child models/tables
   victimDetails    VictimDetails?
   assailantDetails AssailantDetails?
@@ -249,13 +265,11 @@ model CaseDetails {
   requesterReporterProfile RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
   caseType                 CaseType                  @relation(fields: [caseTypeId], references: [id])
 
+  @@index([deletedAt, createdAt(sort: Desc)])
   @@index([requesterReporterProfileId])
   @@index([caseTypeId])
   @@index([caseStatus])
-  @@index([createdAt])
   @@index([updatedAt])
-  @@index([deletedAt])
-  @@index([id])
 }
 
 model VictimDetails {
@@ -319,12 +333,16 @@ model ServiceRequests {
   id                         String  @id @default(uuid())
   requesterReporterProfileId String?
 
-  whoNeedsThisService WhoIsReporting
-  ageRange            AgeRange?
-  phone               String?
-  email               String?
-  infoConfirmed       Boolean
-  caseStatus          CaseStatus     @default(pending)
+  whoNeedsThisService     WhoIsReporting
+  ageRange                AgeRange?
+  phone                   String?
+  email                   String?
+  infoConfirmed           Boolean
+  requestStatus           CaseStatus     @default(pending)
+  claimedByOrganizationId String?
+
+  claimedByOrganization SupportOrgProfile?  @relation(fields: [claimedByOrganizationId], references: [id], onDelete: SetNull)
+  serviceAssignments    ServiceAssignment[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -338,11 +356,10 @@ model ServiceRequests {
   requesterReporterProfile RequesterReporterProfile? @relation(fields: [requesterReporterProfileId], references: [id], onDelete: SetNull)
 
   @@index([requesterReporterProfileId])
-  @@index([caseStatus])
-  @@index([createdAt])
+  @@index([requestStatus])
   @@index([updatedAt])
-  @@index([deletedAt])
-  @@index([id])
+  @@index([deletedAt, createdAt(sort: Desc)])
+  @@index([claimedByOrganizationId])
 }
 
 model ServiceDetails {
@@ -384,24 +401,24 @@ model ServiceDetails {
  * @@index([sectorId])
  * }
  */
+
 // ================== SERVICE ASSIGNMENT ==================
-/**
- * model ServiceAssignment {
- * id             String           @id @default(uuid())
- * serviceId      String
- * organizationId String?
- * status         AssignmentStatus @default(pending)
- * createdAt      DateTime         @default(now())
- * updatedAt      DateTime         @updatedAt
- * // Relations
- * service      ServiceRequests    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
- * organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
- * @@unique([serviceId, organizationId]) // prevent duplicates
- * @@index([serviceId, status])
- * @@index([organizationId])
- * @@index([status])
- * }
- */
+model ServiceAssignment {
+  id             String           @id @default(uuid())
+  serviceId      String
+  organizationId String
+  status         AssignmentStatus @default(pending)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  service      ServiceRequests   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  organization SupportOrgProfile @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([serviceId, organizationId])
+  @@index([serviceId, status])
+  @@index([organizationId])
+  @@index([status])
+}
 
 /**
  * -- A case report can be submitted to more than one organization
@@ -422,23 +439,23 @@ model ServiceDetails {
  */
 
 // ================== CASE ASSIGNMENT ==================
-/**
- * model CaseAssignment {
- * id             String           @id @default(uuid())
- * caseId         String
- * organizationId String?
- * status         AssignmentStatus @default(pending)
- * createdAt      DateTime         @default(now())
- * updatedAt      DateTime         @updatedAt
- * // Relations
- * case         CaseDetails        @relation(fields: [caseId], references: [id], onDelete: Cascade)
- * organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
- * @@unique([caseId, organizationId]) // prevent duplicates
- * @@index([caseId, status])
- * @@index([organizationId])
- * @@index([status])
- * }
- */
+model CaseAssignment {
+  id             String           @id @default(uuid())
+  caseId         String
+  organizationId String?
+  status         AssignmentStatus @default(pending)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  case         CaseDetails        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organization SupportOrgProfile? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@unique([caseId, organizationId]) // prevent duplicate broadcast rows per org
+  @@index([caseId, status])
+  @@index([organizationId])
+  @@index([status])
+}
 
 model PasswordReset {
   id        String   @id @default(uuid())
@@ -473,43 +490,39 @@ enum NotificationStatus {
 }
 
 model Notification {
-  id         String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  ownerType  NotificationOwnerType // ORG | REPORTER
-  ownerId    String
+  ownerType NotificationOwnerType // ORG | REPORTER
+  ownerId   String
 
   sourceType NotificationSourceType // CASE_REPORT | SERVICE_REQUEST
   sourceId   String
 
-  status     NotificationStatus // PENDING | IN_DISCUSSION | CLOSED
+  status NotificationStatus // PENDING | IN_DISCUSSION | CLOSED
 
-  data       Json
+  data Json
 
-  createdAt  DateTime @default(now())
-  closedAt   DateTime?
+  createdAt DateTime  @default(now())
+  closedAt  DateTime?
 
   @@index([ownerType, ownerId])
   @@index([sourceType, sourceId])
   @@index([ownerId])
 }
 
-
 //==========================================================================================================================================================================
 model ChatRoom {
-  id         String   @id @default(uuid())
-  sourceType NotificationSourceType // Case_Report | Service Request
-  sourceId   String
+  id         String                 @id @default(uuid())
+  sourceType NotificationSourceType // Case_Report | Service_Request
+  sourceId   String //means CaseAssignment.id or ServiceAssignment.id, NOT the case/request id itself
 
-  organizationId String @default("temporary-id")
-  reporterId     String @default("temporary-id")
-  status    ChatRoomStatus @default(ACTIVE)
+  status ChatRoomStatus @default(ACTIVE)
 
   participants ChatParticipant[]
+  messages     Message[]
+  createdAt    DateTime          @default(now())
 
-  messages         Message[]
-  createdAt  DateTime @default(now())
-
-  @@unique([sourceType, sourceId]) // Ensure one chat room per case report or service request
+  @@unique([sourceType, sourceId]) // one room per assignment (per org's claim), not per case
 }
 
 enum ChatRoomStatus {
@@ -518,29 +531,31 @@ enum ChatRoomStatus {
 }
 
 model ChatParticipant {
-  id         String   @id @default(uuid())
+  id         String                @id @default(uuid())
   chatRoomId String
   userId     String
-  role      NotificationOwnerType // ORG | REPORTER
-  joinedAt DateTime @default(now())
-  leftAt DateTime?
+  role       NotificationOwnerType // ORG | REPORTER
+  joinedAt   DateTime              @default(now())
+  leftAt     DateTime?
 
   chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
 
   @@unique([chatRoomId, userId])
   @@index([chatRoomId])
 }
+
 model Message {
-  id         String   @id @default(uuid())
+  id         String                @id @default(uuid())
   chatRoomId String
   senderRole NotificationOwnerType // ORG | REPORTER
   senderId   String
-  content    String   @db.VarChar(500)
-  createdAt  DateTime @default(now())
+  content    String                @db.VarChar(500)
+  createdAt  DateTime              @default(now())
 
   chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender   User     @relation(fields: [senderId], references: [id])
 
-  @@unique([chatRoomId, id])
   @@index([senderId])
   @@index([chatRoomId, createdAt])
 }

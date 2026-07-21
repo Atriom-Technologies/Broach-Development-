@@ -5,9 +5,10 @@ import { CloudinaryProvider } from 'src/cloudinary/cloudinary.provider';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { LoggerModule } from 'src/logger/logger.module';
+import { PrismaService } from 'src/prisma/prisma.service';
 @Module({
   imports: [PrismaModule, LoggerModule],
-  providers: [RequesterProfileService, CloudinaryProvider, SafeExecutor],
+  providers: [RequesterProfileService, CloudinaryProvider, SafeExecutor, PrismaService],
   controllers: [RequesterProfileController],
 })
 export class RequesterProfileModule {}

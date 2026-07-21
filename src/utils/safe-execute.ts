@@ -1,4 +1,3 @@
-// src/utils/safe-execute.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { AppLogger } from 'src/logger/logger.service';
 
@@ -7,13 +6,7 @@ import { AppLogger } from 'src/logger/logger.service';
 export class SafeExecutor {
   constructor(private readonly logger: AppLogger) {}
 
-  async run<T>(
-    // Function to execute
-    fn: () => Promise<T>,
-    errorMessage: string,
-  ): Promise<T> {
-    // Try to execute the function and catch any errors
-    // If an error occurs, log it
+  async run<T>(fn: () => Promise<T>, errorMessage: string): Promise<T> {
     try {
       return await fn();
     } catch (error: unknown) {
@@ -54,6 +47,3 @@ export class SafeExecutor {
     }
   }
 }
-
-// Example usage in a service:
-// const result = await this.safeExecutor.run(() => this.prisma.user.findMany(), 'User fetch failed', 'UserService');

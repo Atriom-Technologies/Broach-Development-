@@ -10,7 +10,6 @@
 //   NoOfAssailants,
 // } from '@prisma/client';
 
-
 // // Case Response
 // export class CaseResponseDto {
 //   id: string;
@@ -48,5 +47,3 @@
 //   gender: Gender;
 //   ageRange: AgeRange;
 // }
-
-

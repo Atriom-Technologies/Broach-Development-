@@ -7,10 +7,17 @@ export class ServiceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   // Find user by ID and return userType
-  async findUserTypeById(id: string) {
+  async findUserById(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
-      select: { userType: true },
+      select: {
+        userType: true,
+        requesterReporterProfile: {
+          select: {
+            userId: true,
+          },
+        },
+      },
     });
   }
 
@@ -37,13 +44,9 @@ export class ServiceRepository {
   }
 
   // Create a new service request
-  async createServiceRequest(data: Prisma.ServiceRequestsCreateInput) {
-    return this.prisma.serviceRequests.create({
-      data,
-      include: {
-        serviceDetails: true,
-      },
-    });
+  async createServiceRequest(args: Prisma.ServiceRequestsCreateArgs, tx?: Prisma.TransactionClient) {
+    const prisma = tx ?? this.prisma;
+    return prisma.serviceRequests.create(args);
   }
 
   // Get service request by ID
@@ -78,48 +81,30 @@ export class ServiceRepository {
     });
   }
 
-  // Get all service requests
-  async getAllServiceRequests(skip: number, take: number) {
-    const [cases, total] = await Promise.all([
-      this.prisma.serviceRequests.findMany({
-        skip,
-        take,
-        where: {
-          deletedAt: null,
+  async getAllServiceRequests(take: number, cursor?: string) {
+    return this.prisma.serviceRequests.findMany({
+      take: take + 1,
+      ...(cursor && { skip: 1, cursor: { id: cursor } }),
+      where: { deletedAt: null },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      select: {
+        id: true,
+        createdAt: true,
+        requesterReporterProfile: {
+          select: { profilePicture: true, fullName: true },
         },
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          createdAt: true,
-          requesterReporterProfile: {
-            select: {
-              profilePicture: true,
-              fullName: true,
-            },
-          },
-          serviceDetails: {
-            select: {
-              description: true,
-              serviceType: {
-                select: {
-                  name: true,
-                },
-              },
-            },
+        serviceDetails: {
+          select: {
+            description: true,
+            serviceType: { select: { name: true } },
           },
         },
-      }),
-      this.prisma.caseDetails.count(),
-    ]);
-    return { cases, total };
+      },
+    });
   }
 
   // Update a service request
-  async updateServiceRequest(
-    id: string,
-    userId: string,
-    data: Prisma.ServiceRequestsUpdateInput,
-  ) {
+  async updateServiceRequest(id: string, userId: string, data: Prisma.ServiceRequestsUpdateInput) {
     return this.prisma.serviceRequests.update({
       where: {
         id,

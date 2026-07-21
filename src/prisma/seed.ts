@@ -1,9 +1,18 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import { AppLogger } from 'src/logger/logger.service';
 import { SafeExecutor } from 'src/utils/safe-execute';
+import 'dotenv/config';
 
 // Initialization
-const prisma: PrismaClient = new PrismaClient();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 1, // one-shot script, no concurrency needed
+});
+const adapter = new PrismaPg(pool);
+const prisma: PrismaClient = new PrismaClient({ adapter });
 const logger = new AppLogger();
 const safeExecutor = new SafeExecutor(logger);
 
@@ -67,15 +76,24 @@ async function seedEnumTable<K extends keyof typeof seedData>(
   tableName: 'sector' | 'caseType' | 'serviceType' | 'vulnerabilityStatus', // restrict to known table names
 ): Promise<void> {
   await safeExecutor.run(async () => {
-    const data = seedData[modelName].map((name) => ({ name }));
-
     // Type-safe access to Prisma model
     const model = (
       prisma as unknown as Record<
         typeof tableName,
-        { createMany: (args: unknown) => Promise<unknown> }
+        { count: () => Promise<number>; createMany: (args: unknown) => Promise<unknown> }
       >
     )[tableName];
+
+    // Check table count first
+    const currentCount = await model.count();
+
+    // Early exit if the database already matches our array length
+    if (currentCount >= seedData[modelName].length) {
+      logger.verbose(`${tableName} table is fully synchronized. Skipping write operations.`);
+      return;
+    }
+
+    const data = seedData[modelName].map((name) => ({ name }));
 
     await model.createMany({ data, skipDuplicates: true });
     logger.verbose(`${tableName} seeded successfully`);
@@ -93,9 +111,11 @@ async function main(): Promise<void> {
 main()
   .catch((e) => {
     logger.error('Unexpected error during seeding', (e as Error).stack);
+    process.exitCode = 1;
   })
-  .finally(() => {
-    void prisma.$disconnect(); // no Promise returned to ESLint
+  .finally(async () => {
+    await prisma.$disconnect();
+    await pool.end();
   });
 
 /* import { PrismaClient } from '@prisma/client';
