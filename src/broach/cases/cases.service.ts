@@ -23,18 +23,17 @@ export class CasesService {
 
   // Submit a case
   async createCase(dto: CreateCaseDto, userId: string) {
-    // Run the query raw. Let it return the user object or null naturally.
     const user = await this.repo.findUserById(userId);
+    const caseTypedto = dto.typeOfAssaultId;
 
-    // Clear Distinction: Handle a missing user profile (404 Not Found)
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} does not exist.`);
     }
 
     // Handle incorrect account permissions (403 Forbidden)
-    if (user.userType !== UserType.requester_reporter) {
-      throw new ForbiddenException('You cannot submit a case. Invalid user type!');
-    }
+    // if (user.userType !== UserType.requester_reporter) {
+    //   throw new ForbiddenException('You cannot submit a case. Invalid user type!');
+    // }
 
     // Handle an incomplete registration profile (403 Forbidden or 400 Bad Request)
     if (!user.requesterReporterProfile) {
@@ -43,7 +42,7 @@ export class CasesService {
 
     // Check if case type ID from front end is valid. Case type id is expected to be sent from client
     // Note: Type of assault labeled in UI form is regarded as caseType in the database
-    const caseType = await this.repo.findCaseTypeById(dto.typeOfAssaultId);
+    const caseType = await this.repo.findCaseTypeById(caseTypedto);
 
     if (!caseType) {
       throw new BadRequestException('Please select a valid case type.');
