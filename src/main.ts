@@ -56,7 +56,9 @@ async function bootstrap() {
   );
 
   // Global prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: ['/'],
+  });
 
   // Swagger Config
   const config = new DocumentBuilder()

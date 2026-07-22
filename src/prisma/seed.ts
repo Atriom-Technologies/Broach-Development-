@@ -9,7 +9,6 @@ import 'dotenv/config';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 1, // one-shot script, no concurrency needed
 });
 const adapter = new PrismaPg(pool);
 const prisma: PrismaClient = new PrismaClient({ adapter });
