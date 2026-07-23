@@ -46,12 +46,20 @@ export class CasesController {
     };
   }
 
-  @Get()
+  @Get('reporter-requester')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.requester_reporter)
-  getAllCases(@Query() dto: CursorPaginationDto) {
-    return this.casesService.getAllCases(dto);
+  getReporterCaseHistory(@Query() dto: CursorPaginationDto) {
+    return this.casesService.getReporterCaseHistory(dto);
+  }
+
+  @Get('org')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  getOrgCaseHistory(@Query() dto: CursorPaginationDto) {
+    return this.casesService.getOrgCaseHistory(dto);
   }
 
   @Post(':id/claim')

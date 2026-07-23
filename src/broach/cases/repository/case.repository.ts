@@ -133,6 +133,13 @@ export class CaseRepository {
             fullName: true,
           },
         },
+        claimedByOrganization: {
+          select: {
+            id: true,
+            organizationName: true,
+            organizationLogoUrl: true,
+          },
+        },
         caseType: {
           select: {
             name: true,

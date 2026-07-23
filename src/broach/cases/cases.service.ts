@@ -154,6 +154,56 @@ export class CasesService {
     };
   }
 
+  async getReporterCaseHistory(pagination: CursorPaginationDto) {
+    const { cursor, limit } = pagination;
+
+    const cases = await this.repo.getAllCases(limit, cursor);
+
+    if (!cases.length) throw new NotFoundException('No Data Available.');
+
+    const hasNextPage = cases.length > limit;
+    const items = hasNextPage ? cases.slice(0, limit) : cases;
+
+    return {
+      data: items.map((item) => ({
+        id: item.id,
+        createdAt: item.createdAt,
+        orgLogo: item.claimedByOrganization?.organizationLogoUrl || 'NA',
+        orgName: item.claimedByOrganization?.organizationName || 'NA',
+        caseType: item.caseType.name,
+      })),
+      meta: {
+        hasNextPage,
+        nextCursor: hasNextPage ? items[items.length - 1].id : null,
+      },
+    };
+  }
+
+  async getOrgCaseHistory(pagination: CursorPaginationDto) {
+    const { cursor, limit } = pagination;
+
+    const cases = await this.repo.getAllCases(limit, cursor);
+
+    if (!cases.length) throw new NotFoundException('No Data Available.');
+
+    const hasNextPage = cases.length > limit;
+    const items = hasNextPage ? cases.slice(0, limit) : cases;
+
+    return {
+      data: items.map((item) => ({
+        id: item.id,
+        createdAt: item.createdAt,
+        profilePicture: item.requesterReporterProfile?.profilePicture || 'NA',
+        fullName: item.requesterReporterProfile?.fullName || 'NA',
+        caseType: item.caseType,
+      })),
+      meta: {
+        hasNextPage,
+        nextCursor: hasNextPage ? items[items.length - 1].id : null,
+      },
+    };
+  }
+
   async getCaseForOrg(caseId: string, organizationId: string) {
     const orgProfile = await this.repo.getSupportOrgProfileByUserId(organizationId);
     if (!orgProfile) {
@@ -309,13 +359,9 @@ export class CasesService {
       description: item.description,
       createdAt: item.createdAt,
       caseType: item.caseType?.name ?? null,
-      reporter: item.requesterReporterProfile
-        ? {
-            id: item.requesterReporterProfile.id,
-            fullName: item.requesterReporterProfile.fullName,
-            profilePicture: item.requesterReporterProfile.profilePicture,
-          }
-        : null,
+      reporterId: item.requesterReporterProfile?.id ?? null,
+      reporterFullName: item.requesterReporterProfile?.fullName ?? null,
+      reporterProfilePicture: item.requesterReporterProfile?.profilePicture ?? null,
     };
   }
 }
