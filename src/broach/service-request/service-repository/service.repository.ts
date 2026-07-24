@@ -152,6 +152,23 @@ export class ServiceRepository {
   //   });
   // }
 
+  async getServiceRequestByIdForReporter(requestId: string, requesterReporterProfileId: string) {
+    return this.prisma.serviceRequests.findFirst({
+      where: {
+        id: requestId,
+        requesterReporterProfileId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        requestStatus: true,
+        serviceDetails: {
+          select: { description: true, serviceType: { select: { name: true } } },
+        },
+      },
+    });
+  }
+
   async getAllServiceRequests(take: number, cursor?: string) {
     return this.prisma.serviceRequests.findMany({
       take: take + 1,
