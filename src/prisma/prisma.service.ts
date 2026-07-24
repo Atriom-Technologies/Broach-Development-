@@ -45,6 +45,20 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
             return result;
           },
         },
+        serviceRequests: {
+          async update({ args, query }) {
+            const result = await query(args);
+            const id = typeof args.where?.id === 'string' ? args.where.id : undefined;
+            if (id) await redis.del(`service:details:${id}`);
+            return result;
+          },
+          async updateMany({ args, query }) {
+            const result = await query(args);
+            const id = typeof args.where?.id === 'string' ? args.where.id : undefined;
+            if (id) await redis.del(`service:details:${id}`);
+            return result;
+          },
+        },
       },
     });
   }

@@ -62,6 +62,14 @@ export class CasesController {
     return this.casesService.getOrgCaseHistory(dto);
   }
 
+  @Post(':id/contact-reporter')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  contactReporter(@Param('id') caseId: string, @CurrentUser() user: UserFromJwt) {
+    return this.casesService.contactReporter(caseId, user.id);
+  }
+
   @Post(':id/claim')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -92,6 +100,13 @@ export class CasesController {
   @Roles(UserType.requester_reporter)
   withdrawCase(@Param('id') caseId: string, @CurrentUser() user: UserFromJwt) {
     return this.casesService.withdrawCase(caseId, user.id);
+  }
+
+  @Get(':id/respond')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.requester_reporter)
+  respondToCase(@Param('id') caseId: string, @CurrentUser() user: UserFromJwt) {
+    return this.casesService.respondToCase(caseId, user.id);
   }
 
   @Get(':id/org-view')

@@ -77,7 +77,7 @@ export class CaseRepository {
     }
 
     // On cache miss
-    const caseDetals = await this.prisma.caseDetails.findUnique({
+    const caseDetails = await this.prisma.caseDetails.findUnique({
       where: { id, deletedAt: null },
       select: {
         id: true,
@@ -95,9 +95,9 @@ export class CaseRepository {
     });
 
     // Save the complete joined object to Redis
-    if (caseDetals) await this.redis.set(cacheKey, JSON.stringify(caseDetals), 'EX', 3600);
+    if (caseDetails) await this.redis.set(cacheKey, JSON.stringify(caseDetails), 'EX', 3600);
 
-    return caseDetals;
+    return caseDetails;
   }
   async getCaseByIdForReporter(caseId: string, requesterReporterProfileId: string) {
     return this.prisma.caseDetails.findFirst({
@@ -149,11 +149,21 @@ export class CaseRepository {
     });
   }
 
+  /**
+   *
+   * This repository claims a case report if available and updates status field from pending to in discussion
+   * @param caseId
+   * @param organizationId
+   * @returns
+   */
   async claimCase(caseId: string, organizationId: string) {
     return this.prisma.$transaction(async (tx) => {
       // Atomic: only succeeds if caseStatus is STILL 'pending' at the moment of the write.
       const result = await tx.caseDetails.updateMany({
-        where: { id: caseId, caseStatus: 'pending' },
+        where: {
+          id: caseId,
+          OR: [{ caseStatus: 'pending' }, { claimedByOrganizationId: organizationId }], // allow the current claimant to "re-claim" harmlessly
+        },
         data: { caseStatus: 'in_discussion', claimedByOrganizationId: organizationId },
       });
 

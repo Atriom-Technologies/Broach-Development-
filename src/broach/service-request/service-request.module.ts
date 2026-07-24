@@ -7,10 +7,22 @@ import { SafeExecutor } from 'src/utils/safe-execute';
 import { ServiceRepository } from './service-repository/service.repository';
 import { ConversationService } from '../conversation/conversation.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { LookupService } from 'src/lookup/lookup.service';
+import { AppLogger } from 'src/logger/logger.service';
 
 @Module({
   imports: [PrismaModule, LoggerModule],
   controllers: [ServiceRequestController],
-  providers: [ServiceRequestService, SafeExecutor, ServiceRepository, ConversationService, PrismaService],
+  providers: [
+    ServiceRequestService,
+    SafeExecutor,
+    ServiceRepository,
+    ConversationService,
+    PrismaService,
+    ConversationService,
+    LookupService,
+    AppLogger,
+  ],
+  exports: [ServiceRequestService],
 })
 export class ServiceRequestModule {}

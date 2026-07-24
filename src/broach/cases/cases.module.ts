@@ -21,6 +21,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
     NotificationService,
     ConversationService,
     CaseRepository,
+    ConversationService,
   ],
   exports: [CasesService, CaseRepository],
 })

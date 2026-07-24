@@ -20,7 +20,7 @@ import { RolesGuard } from 'src/broach/auth/guards/role.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserType } from '@prisma/client';
 import { BioDetailsDto } from './dto/create-service-request.dto';
-import { RequestWithUserPayload } from 'src/broach/auth/interfaces/jwt-payload.interface';
+import { CurrentUser, RequestWithUserPayload, UserFromJwt } from 'src/broach/auth/interfaces/jwt-payload.interface';
 import { ApiResponse } from 'src/common/dto/api-response.dto';
 import { CursorPaginationDto } from './dto/pagination.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -46,12 +46,28 @@ export class ServiceRequestController {
     };
   }
 
-  @Get()
+  // @Get()
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserType.requester_reporter)
+  // async getAllServiceRequests(@Query() dto: CursorPaginationDto) {
+  //   return this.serviceRequest.getAllServiceRequests(dto);
+  // }
+
+  @Get('reporter-requester')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.requester_reporter)
-  async getAllServiceRequests(@Query() dto: CursorPaginationDto) {
-    return this.serviceRequest.getAllServiceRequests(dto);
+  getReporterCaseHistory(@Query() dto: CursorPaginationDto) {
+    return this.serviceRequest.getReporterServiceHistory(dto);
+  }
+
+  @Get('org')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  getOrgCaseHistory(@Query() dto: CursorPaginationDto) {
+    return this.serviceRequest.getOrgServicesHistory(dto);
   }
 
   @Get(':id')
@@ -60,6 +76,53 @@ export class ServiceRequestController {
   @Roles(UserType.requester_reporter)
   async getServiceRequest(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.serviceRequest.getServiceRequest(id);
+  }
+
+  @Post(':id/contact-reporter')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  contactReporter(@Param('id') serviceId: string, @CurrentUser() user: UserFromJwt) {
+    return this.serviceRequest.contactReporter(serviceId, user.id);
+  }
+
+  @Get(':id/respond')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.requester_reporter)
+  respondToService(@Param('id') serviceId: string, @CurrentUser() user: UserFromJwt) {
+    return this.serviceRequest.respondToCase(serviceId, user.id);
+  }
+
+  @Post(':id/claim')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  claimCase(@Param('id') caseId: string, @CurrentUser() user: UserFromJwt) {
+    return this.serviceRequest.claimService(caseId, user.id);
+  }
+
+  @Post(':id/reject')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  rejectCase(@Param('id') serviceId: string, @CurrentUser() user: UserFromJwt) {
+    return this.serviceRequest.rejectService(serviceId, user.id);
+  }
+
+  @Post(':id/resolve')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.support_organization)
+  resolveCase(@Param('id') serviceId: string, @CurrentUser() user: UserFromJwt) {
+    return this.serviceRequest.resolveService(serviceId, user.id);
+  }
+
+  @Post(':id/withdraw')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.requester_reporter)
+  withdrawCase(@Param('id') serviceId: string, @CurrentUser() user: UserFromJwt) {
+    return this.serviceRequest.withdrawService(serviceId, user.id);
   }
 
   @Patch('update/:id')

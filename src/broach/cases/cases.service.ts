@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { SafeExecutor } from 'src/utils/safe-execute';
 import { CreateCaseDto } from './dto/create-case.dto';
-import { Prisma, UserType } from '@prisma/client';
+import { NotificationSourceType, Prisma, UserType } from '@prisma/client';
 import { CaseRepository } from './repository/case.repository';
 import { CursorPaginationDto } from './dto/pagination.dto';
 import { UpdateCaseDto } from './dto/update-case.dto';
@@ -10,6 +10,7 @@ import { Queue } from 'bullmq';
 import { CASE_REPORT_JOB, NOTIFICATION_JOB_OPTS, NOTIFICATION_QUEUE } from 'src/shared/constant/case.constants';
 import { AppLogger } from 'src/logger/logger.service';
 import { CaseListItem } from './types';
+import { ConversationService } from '../conversation/conversation.service';
 @Injectable()
 export class CasesService {
   constructor(
@@ -17,6 +18,7 @@ export class CasesService {
     private readonly repo: CaseRepository,
     private readonly safeExecutor: SafeExecutor,
     private readonly logger: AppLogger,
+    private readonly conversationService: ConversationService,
   ) {
     this.logger.setContext(CasesService.name);
   }
@@ -48,18 +50,24 @@ export class CasesService {
       throw new BadRequestException('Please select a valid case type.');
     }
 
+    /**
+     * Case report and can be submitted without the victim details
+     * victim details is option when a field like self is selected from the drop down menu
+     * so if condition handles the business variant
+     */
     // Safely extract the ID from the DTO
-    const vulnerabilityStatusId = dto.victimDetails?.vulnerabilityStatusId;
-    if (!vulnerabilityStatusId) {
-      throw new BadRequestException('Invalid type. Please select a valid vulnerable status.');
-    }
+    if (dto.victimDetails) {
+      const vulnerabilityStatusId = dto.victimDetails?.vulnerabilityStatusId;
+      if (!vulnerabilityStatusId) {
+        throw new BadRequestException('Invalid type. Please select a valid vulnerable status.');
+      }
 
-    // Run the lookup AND capture the return value
-    const vulnerabilityStatus = await this.repo.findVulnerabilityStatusById(vulnerabilityStatusId);
-
-    // Physically block the execution if the database returns null
-    if (!vulnerabilityStatus) {
-      throw new BadRequestException('The selected vulnerability status does not exist.');
+      // Run the lookup AND capture the return value
+      const vulnerabilityStatus = await this.repo.findVulnerabilityStatusById(vulnerabilityStatusId);
+      // Physically block the execution if the database returns null
+      if (!vulnerabilityStatus) {
+        throw new BadRequestException('The selected vulnerability status does not exist.');
+      }
     }
 
     // Build the data to be created
@@ -108,7 +116,7 @@ export class CasesService {
     try {
       await this.caseReportQueue.add(
         CASE_REPORT_JOB,
-        { caseId: caseDetails.id, userId: caseDetails.requesterReporterProfileId },
+        { caseId: caseDetails.id, userId: user.requesterReporterProfile.id },
         NOTIFICATION_JOB_OPTS,
       );
     } catch (err) {
@@ -219,6 +227,7 @@ export class CasesService {
 
     return {
       id: caseDetails.id,
+      caseType: caseDetails.caseType,
       description: caseDetails.description,
       caseStatus: caseDetails.caseStatus,
       claimedByOrganizationId: caseDetails.claimedByOrganizationId,
@@ -244,6 +253,44 @@ export class CasesService {
       throw new ForbiddenException('No organization profile found for this account.');
     }
     return this.repo.claimCase(caseId, orgProfile.id);
+  }
+
+  async contactReporter(caseId: string, orgId: string) {
+    const orgProfile = await this.repo.getSupportOrgProfileByUserId(orgId);
+
+    if (!orgProfile) {
+      throw new ForbiddenException('No organization profile found for this account.');
+    }
+    // Step 1: claim (atomic, race-safe — as already built)
+    await this.repo.claimCase(caseId, orgProfile.id);
+
+    // Step 2: resolve both users needed for the room
+    const context = await this.repo.getContactContext(caseId, orgProfile.id);
+    if (!context) {
+      throw new NotFoundException('Case or assignment not found after claiming.');
+    }
+
+    // Step 3: create the room (idempotent — safe even if retried)
+    const room = await this.conversationService.getOrCreateChatRoom({
+      sourceType: NotificationSourceType.CASE_REPORT,
+      sourceId: context.assignment.id,
+      reporterUserId: context.reporterUserId,
+      organizationUserId: context.organizationUserId,
+    });
+
+    return { chatRoomId: room.id, caseStatus: 'in_discussion' as const };
+  }
+
+  async respondToCase(caseId: string, userId: string) {
+    const assignmentId = await this.getActiveAssignmentIdForReporter(caseId, userId);
+
+    const room = await this.conversationService.getRoomBySource(NotificationSourceType.CASE_REPORT, assignmentId);
+
+    if (!room) {
+      throw new NotFoundException('No conversation has been started for this case yet.');
+    }
+
+    return { chatRoomId: room.id };
   }
 
   async rejectCase(caseId: string, userId: string) {
